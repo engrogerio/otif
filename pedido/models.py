@@ -100,10 +100,10 @@ class Base(OtifModel):
     ds_placa = models.CharField('Placa do veículo', max_length=8, null='true', blank='true', )
     ds_transp = models.CharField('Nome da transportadora', max_length=30, null='true', blank='true', )
     nr_lacre = models.CharField('Número do lacre', max_length=10, null='true', blank='true', )
-    dt_hr_chegada = models.DateTimeField('Data e Hora da chegada', null='true', blank='true', )
-    dt_hr_ini_carga = models.DateTimeField('Data e Hora do inicio do carregamento', null='true', blank='true', )
-    dt_hr_fim_carga = models.DateTimeField('Data e Hora do fim do carregamento', null='true', blank='true', )
-    dt_hr_liberacao = models.DateTimeField('Data e Hora da liberação do caminhão', null='true', blank='true', )
+    dt_hr_chegada = models.DateTimeField('Chegada do caminhão', null='true', blank='true', )
+    dt_hr_ini_carga = models.DateTimeField('Inicio do carregamento', null='true', blank='true', )
+    dt_hr_fim_carga = models.DateTimeField('Fim do carregamento', null='true', blank='true', )
+    dt_hr_liberacao = models.DateTimeField('Liberação do caminhão', null='true', blank='true', )
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_get_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
@@ -127,31 +127,5 @@ class Base(OtifModel):
     #     pass
 
     def __unicode__(self):
-        return self.cd_estab+self.nm_ab_cliente+self.nr_nota_fis
-
-"""
-class Base(OtifModel):
-    dt_prev = models.DateField('Data de entrega', null='true', blank='true', )
-    hr_grade = models.TimeField('Hora', null='true', blank='true', )
-    cd_estab = models.CharField('Código do estabelecimento', max_length=3, null='true', blank='true', )
-    cliente = models.ForeignKey(Cliente, null='true', blank='true', )
-    nr_pedido = models.CharField('Número do pedido do cliente', max_length=24, null='true', blank='true', )
-    ds_ord_compra = models.CharField('Número da ordem de compra', max_length=15, null='true', blank='true', )
-    nr_nota_fis = models.CharField('Número da Nota fiscal', max_length=32, null='true', blank='true', )
-
-    def __str__(self):
         return self.nr_pedido
-
-
-class Item(OtifModel):
-    produto = models.ForeignKey(Produto, null='true', blank='true', )
-    qt_unidade = models.IntegerField('Quantidade', null='true', blank='true', )
-    qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
-    qt_pilha = models.IntegerField('Quantidade da pilha', null='true', blank='true', )
-    qt_pallet = models.IntegerField('Quantidade', null='true', blank='true', )
-
-    def __str__(self):
-        return self.cd_produto
-
-"""
 
