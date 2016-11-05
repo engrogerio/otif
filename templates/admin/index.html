@@ -1,0 +1,184 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}
+<img src="{% static "sgp/img/AryztaLogo.gif" %}"/>
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />
+{% endblock %}
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+{% if app_list %}
+    <div class="app-{{ app.app_label }} module">
+    <table>
+    <tr class="model-reports">
+    <th scope="row"> <a href="{{ SERVER_URL }}/report"><i class="fa fa-list fa-3x"></i>&nbsp&nbspRelatórios</a>
+    </th>
+    </tr>
+    </table>
+    </div>
+
+    {% for app in app_list %}
+        <div class="app-{{ app.app_label }} module">
+        <table>
+
+        {% for model in app.models %}
+            <tr class="model-{{ model.object_name|lower }}">
+
+            {% if model.admin_url %}
+                <th scope="row"><a href="{{ model.admin_url }}">
+                {% if model.name  == "Tipos de Evento" %}
+                    <i class="fa fa-list fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Entradas de log" %}
+                   <i class="fa fa-book fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Grupos" %}
+                   <i class="fa fa-users fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Usuários" %}
+                   <i class="fa fa-user fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Eventos" %}
+                   <i class="fa fa-truck fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Funcionários" %}
+                   <i class="fa fa-male fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Visitantes" %}
+                   <i class="fa fa-suitcase fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Permissões" %}
+                   <i class="fa fa-unlock fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Áreas" %}
+                   <i class="fa fa-map-marker fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Permissões Especiais" %}
+                   <i class="fa fa-key fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Reports" %}
+                   <i class="fa fa-file-excel-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Formats" %}
+                   <i class="fa fa-pencil-square-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio" %}
+                   <i class="fa fa-industry fa-3x" title=""></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio do Usuário" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Cargos" %}
+                   <i class="fa fa-cogs fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Treinamentos" %}
+                   <i class="fa fa-graduation-cap fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Documentos" %}
+                   <i class="fa fa-legal fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Tipos de Documento" %}
+                   <i class="fa fa-list fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Queries" %}
+                   <i class="fa fa-file-excel-o fa-3x"></i>
+                {% endif %}
+
+            {{ model.name }}</a></th>
+            {% else %}
+                <th scope="row">
+                {% if model.name  == "Tipos de Evento" %}
+                   <i class="fa fa-list fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Entradas de log" %}
+                   <i class="fa fa-book fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Grupos" %}
+                   <i class="fa fa-users fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Usuários" %}
+                   <i class="fa fa-user fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Eventos" %}
+                   <i class="fa fa-truck fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Funcionários" %}
+                   <i class="fa fa-male fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Visitantes" %}
+                   <i class="fa fa-suitcase fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Permissões" %}
+                   <i class="fa fa-unlock fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Áreas" %}
+                   <i class="fa fa-map-marker fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Permissões Especiais" %}
+                   <i class="fa fa-key fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Reports" %}
+                   <i class="fa fa-file-excel-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Formats" %}
+                   <i class="fa fa-pencil-square-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio" %}
+                   <i class="fa fa-industry fa-3x" title=""></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio do Usuário" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Cargos" %}
+                   <i class="fa fa-cogs fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Treinamentos" %}
+                   <i class="fa fa-graduation-cap fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Documentos" %}
+                   <i class="fa fa-legal fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Tipos de Documento" %}
+                   <i class="fa fa-list fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Queries" %}
+                   <i class="fa fa-file-excel-o fa-3x"></i>
+                {% endif %}
+                <i class="fa fa-file-excel-o fa-3x"></i>
+                {{ model.name }}
+                </th>
+            {% endif %}
+
+            {% if model.add_url %}
+                <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
+            {% else %}
+                <td>&nbsp;</td>
+            {% endif %}
+            {% if model.admin_url %}
+                <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+            {% else %}
+                <td>&nbsp;</td>
+            {% endif %}
+            </tr>
+        {% endfor %}
+        </table>
+        </div>
+    {% endfor %}
+
+
+{% else %}
+    <p>{% trans "You don't have permission to edit anything." %}</p>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}

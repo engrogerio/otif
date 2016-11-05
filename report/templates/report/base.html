@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br"/>
+<head>
+<title>{% block title %}{% endblock %}</title>
+
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static 'sgp/css/base.css' %}{% endblock%}" />
+    <link rel="stylesheet" href="{% static 'admin/css/font-awesome.min.css' %}"/>
+<img src="{% static 'sgp/img/AryztaLogo.gif' %}"/>
+</head>
+{% load i18n %}
+
+<!-- Container -->
+<div id="container">
+
+    {% if not is_popup %}
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+        {% block branding %}{% endblock %}
+        </div>
+        {% if user.is_active and user.is_staff %}
+        <div id="user-tools">
+            {% block welcome-msg %}
+                {% trans 'Welcome,' %}
+                <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+            {% endblock %}
+            {% block userlinks %}
+                {% if user.has_usable_password %}
+                <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
+                {% endif %}
+                <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+            {% endblock %}
+        </div>
+        {% endif %}
+        {% block nav-global %}{% endblock %}
+    </div>
+    <!-- END Header -->
+    <div class="breadcrumbs">
+    {% block breadcrumbs %}
+    {% endblock %}
+    </div>
+
+    {% endif %}
+
+
+    <!-- Content -->
+
+    <div id="content">
+        {% block pretitle %}{% endblock %}
+        <h1>{% block content_title %}{% endblock %}</h1>
+        {% block content %}
+        {% block object-tools %}{% endblock %}
+        {% endblock %}
+        {% block sidebar %}{% endblock %}
+        <br class="clear" />
+    </div>
+    </div>
+    <!-- END Content -->
+<div id="footer">
+    {% block footer %}{% endblock %}
+</div>
+</div>
+<!-- END Container -->
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+    table.data {border-width:3px; padding: 4px; border-style: solid;border-color: black;border-collapse: collapse;}
+    th.data {border-width: 0px;padding: 4px;border-style: solid;border-color: black; border-collapse: collapse;}
+    td.data {border-width: 1px;padding: 4px;border-style: solid;border-color: black; border-collapse: collapse;}
+
+    tr.data:nth-child(odd) {
+   background-color: #ccc;
+}
+.overline {
+    width: 300px;
+    border-top: 2px solid black;
+}
+
+    </style>
+    <title>
+    Aryzta - Treinamentos por Funcionário
+    </title>
+       {% load staticfiles %}
+      <img src="{% static "sgp/img/AryztaLogo.gif" %}"/>
+  </head>
+
+  <body>
+    <p><h2>{{ funcionario.matricula }} - {{ funcionario.nome }}</h2></p>
+  <table class="data">
+      <tr class="data">
+          <td class="data"><strong>Número</strong></td>
+          <td class="data"><strong>Treinamento</strong></td>
+          <td class="data"><strong>Data</strong></td>
+          <td class="data"><strong>Carga horária(hs)</strong></td>
+          <td class="data"><strong>Vencimento</strong></td>
+          <td class="data"><strong>Tipo de documento</strong></td>
+          <td class="data"><strong>Treinador</strong></td>
+      </tr>
+    {% block treinamentos %}
+    {% for tr in treinamento_list %}
+    <tr class="data">
+        <td class="data">{{ tr.id }}</td>
+        <td class="data">{{ tr.documento }}</td>
+        <td class="data">{{ tr.data }}</td>
+        <td class="data">{{ tr.carga_horaria | default_if_none:"Não definido" }}</td>
+        <td class="data">{{ tr.validade | default_if_none:"Não definido" }}</td>
+        <td class="data">{{ tr.tipo }}</td>
+        <td class="data">{{ tr.treinador }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="3" align="right"><strong>Total =></strong></td>
+        <td><strong>{{ total_horas }} hs</strong></td>
+    </tr>
+  </table>
+
+  {% endblock %}
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <table class = "none">
+    <tr class = "none">
+        <td class= "none">
+          <div class="overline">
+              Assinatura Funcionário
+          </div>
+        </td>
+        <td class= "none">
+          <div class="overline">
+            Assinatura Supervisor
+          </div>
+        </td>
+    </tr>
+</div>
+</table>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | {{ 'Sistema de Gestão de OTIF - Aryzta - Invent ' }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="/">Invent - Sistema de Gestão de OTIF</a></h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <a href="{{ SERVER_URL }}/">Início</a>&nbsp> <a href="{{ SERVER_URL }}/report/">Relatórios</a>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+
+{% block content %}
+<h1>Relatórios</h1>
+<div id="content-main">
+    <div class="app-{{ app.app_label }} module">
+    <table>
+        <tr class="model-reports">
+        <th scope="row"> <a href="treinamentos_por_funcionario"><i class="fa fa-recycle fa-3x"></i>&nbsp&nbspTreinamentos realizados por funcionário</a>
+        </th>
+        </tr>
+        <tr>
+        <th scope="row"> <a href="treinamentos_necessidade_por_funcionario"><i class="fa fa-calendar fa-3x"></i>&nbsp&nbspNecessidade de treinamentos por funcionário</a>
+        </th>
+        </tr>
+    </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}
