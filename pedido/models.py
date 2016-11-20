@@ -2,10 +2,11 @@
 
 from django.db import models
 from sgo.models import OtifModel
-from cadastro.models import Cliente, Produto
+from grade.models import Grade
+from cliente.models import Cliente
 
 """
-Modelo de pedidos importados do Mercanet via arquivo txt.
+Modelo de pedidos importados do Totvs ERP via arquivo txt.
 Dados importados não estão normalizados.
 Modelo possue dados de Cliente, Produtos, Pedidos, NF e Transportadora
 
@@ -63,40 +64,16 @@ Aplicação: Pedido
                             multa" * 0,05)+"vl_fixo") senão, 0)
 """
 
-class Item(OtifModel):
-
-    cd_estab = models.CharField('Código do estabelecimento', max_length=3, null='true', blank='true', )
-    nm_ab_cliente = models.CharField('Código do cliente', max_length=24, null='true', blank='true', )
-    nr_nota_fis = models.CharField('Número da Nota fiscal', max_length=32, null='true', blank='true', )
-    dt_saida = models.DateField('Data de saída do Carregamento', null='true', blank='true', )
-    hr_grade = models.TimeField('Hora da grade do cliente', null='true', blank='true', )
-    cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
-    un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
-    qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
-    qt_pilha = models.IntegerField('Quantidade da pilha', null='true', blank='true', )
-    qt_carregada = models.IntegerField('Quantidade carregada', null='true', blank='true', )
-    qt_falta = models.IntegerField('Quantidade', null='true', blank='true', )
-    id_motivo = models.IntegerField('Motivo', null='true', blank='true', )
-    qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
-    vl_base_multa = models.DecimalField ('Valor base da multa', null='true', blank='true', max_digits=17,
-                                         decimal_places=2)
-    vl_multa =  models.DecimalField ('Valor da multa', null='true', blank='true', max_digits=17, decimal_places=2)
-
-    # @property
-    # def base_id(self):
-    #     return ''.join[self.cd_estab, self.nm_ab_cliente, self.nr_nota_fis]
-
-    def __unicode__(self):
-        return self.cd_estab + self.nm_ab_cliente + self.nr_nota_fis + self.cd_produto
 
 
 class Base(OtifModel):
-    item = models.ManyToManyField(Item, null='true', blank='true')
-    cd_estab = models.CharField('Código do estabelecimento', max_length=3, null='true', blank='true', )
-    nm_ab_cliente = models.CharField('Código do cliente', max_length=24, null='true', blank='true', )
-    nr_nota_fis = models.CharField('Número da nota fiscal', max_length=32, null='true', blank='true', )
-    nr_pedido = models.CharField('Número do pedido do cliente', max_length=24, null='true', blank='true', )
-    ds_ord_compra = models.CharField('Número da ordem de compra', max_length=15, null='true', blank='true', )
+    cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
+    cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
+                                db_column='nm_ab_cli')
+    nr_nota_fis = models.CharField('Número da Nota fiscal', max_length=32, null='true', blank='true', )
+
+    dt_saida = models.DateField('Data de saída do Carregamento', null='true', blank='true', )
+    grade = models.ForeignKey(Grade, verbose_name='Hora da grade do cliente', null='true', blank='true', )
     ds_placa = models.CharField('Placa do veículo', max_length=8, null='true', blank='true', )
     ds_transp = models.CharField('Nome da transportadora', max_length=30, null='true', blank='true', )
     nr_lacre = models.CharField('Número do lacre', max_length=10, null='true', blank='true', )
@@ -108,24 +85,51 @@ class Base(OtifModel):
     ds_get_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
     id_no_show = models.CharField('No Show', max_length=1, default= 'N')
+    # TODO: separar campos de multa para outra app devido a controle de acesso
     vl_fixo = models.DecimalField('Valor fixo da multa', null='true', blank='true', max_digits=17,
                                   decimal_places=2)
     vl_base_multa = models.DecimalField('Valor base da multa', null='true', blank='true', max_digits=17,
                                         decimal_places=2)
     vl_multa = models.DecimalField('Valor da multa', null='true', blank='true', max_digits=17, decimal_places=2)
-    #
-    # @property
-    # def base_id (self):
-    #     return ''.join[self.cd_estab, self.nm_ab_cliente, self.nr_nota_fis]
 
-    # @property
-    # def ds_status_cheg(self):
-    #     pass
-    #
-    # @property
-    # def ds_get_status_lib(self):
-    #     pass
+    st_chegada = models.CharField('Status de Chegada', max_length=15, null='true', blank='true', default='No Horário')
+    st_libera = models.CharField('Status de Liberação', max_length=15, null='true', blank='true', default='No Horário')
 
     def __unicode__(self):
-        return self.nr_pedido
+        return '' or ''.join([self.cd_estab, ]) #' - ', self.cliente.nm_ab_cli, self.nr_nota_fis])
 
+    def set_chegada(self):
+        pass
+
+    def set_inicio(self):
+        pass
+
+    def set_fim(self):
+        pass
+
+    def set_liberacao(self):
+        pass
+
+class Item(OtifModel):
+    cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
+    cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
+                                db_column='nm_ab_cli')
+    nr_nota_fis = models.CharField('Número da Nota fiscal', max_length=32, null='true', blank='true', )
+
+    nr_pedido = models.CharField('Número do pedido do cliente', max_length=24, null='true', blank='true', )
+    ds_ord_compra = models.CharField('Número da ordem de compra', max_length=15, null='true', blank='true', )
+    cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
+    un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
+    qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
+    qt_pilha = models.CharField('Quantidade da pilha', max_length=10, null='true', blank='true', )
+    qt_carregada = models.IntegerField('Quantidade carregada', null='true', blank='true', )
+    qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
+    id_motivo = models.IntegerField('Motivo', null='true', blank='true', )
+    qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
+    # TODO: separar campos de multa para outra app devido a controle de acesso
+    vl_base_multa = models.DecimalField ('Valor base da multa', null='true', blank='true', max_digits=17,
+                                         decimal_places=2)
+    vl_multa =  models.DecimalField ('Valor da multa', null='true', blank='true', max_digits=17, decimal_places=2)
+    base = models.ForeignKey(Base)
+    def __unicode__(self):
+        return self.cd_produto or ''

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Django settings for sgp project.
+Django settings for sgo project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -22,8 +22,8 @@ SERVER_URL = ''
 #SERVER_URL = '/sgo_teste'
 #SERVER_URL = '/sgo'
 
-TEMPLATE_DIRS = [ os.path.join(BASE_DIR, 'templates'),
-                  os.path.join(BASE_DIR,'report/templates/report')
+TEMPLATE_DIRS = [ os.path.join(BASE_DIR, 'templates/sgo'),
+
                 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -81,7 +81,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'logentry',
 	'pedido',
-
+    'cliente',
+    'grade',
+    # 'produto',
+    # 'transportadora',
+    # 'estabelecimento',
 
 
 )
@@ -135,6 +139,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.i18n",
     "django.core.context_processors.static",
     "django.core.context_processors.media",
-    "report.context_processors.server_url",
+    #"report.context_processors.server_url",
     "django.template.context_processors.request",
 )

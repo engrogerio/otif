@@ -2,7 +2,7 @@
 {% load i18n admin_static %}
 
 {% block extrastyle %}{{ block.super }}
-<img src="{% static "sgp/img/AryztaLogo.gif" %}"/>
+<img src="{% static "sgo/img/AryztaLogo.gif" %}"/>
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />
 {% endblock %}
 {% block coltype %}colMS{% endblock %}
@@ -15,15 +15,6 @@
 <div id="content-main">
 
 {% if app_list %}
-    <div class="app-{{ app.app_label }} module">
-    <table>
-    <tr class="model-reports">
-    <th scope="row"> <a href="{{ SERVER_URL }}/report"><i class="fa fa-list fa-3x"></i>&nbsp&nbspRelatórios</a>
-    </th>
-    </tr>
-    </table>
-    </div>
-
     {% for app in app_list %}
         <div class="app-{{ app.app_label }} module">
         <table>
@@ -45,7 +36,7 @@
                 {% if model.name  == "Usuários" %}
                    <i class="fa fa-user fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Eventos" %}
+                {% if model.name  == "Pedidos" %}
                    <i class="fa fa-truck fa-3x"></i>
                 {% endif %}
                 {% if model.name  == "Funcionários" %}
@@ -106,7 +97,7 @@
                 {% if model.name  == "Usuários" %}
                    <i class="fa fa-user fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Eventos" %}
+                {% if model.name  == "Pedidos" %}
                    <i class="fa fa-truck fa-3x"></i>
                 {% endif %}
                 {% if model.name  == "Funcionários" %}

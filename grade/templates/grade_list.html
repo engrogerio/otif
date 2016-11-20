@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | {{ 'Sistema de Gestão de Otif - Aryzta - Invent ' }}{% endblock %}
+{% block branding %}
+<h1 id="site-name"><a href="">Invent - Sistema de Gestão de Otif</a></h1>
+{% endblock %}
+{% load i18n admin_urls admin_static admin_list %}
+
+{% block breadcrumbs %}
+    <a href="{{ SERVER_URL }}/">Início</a>&nbsp> <a href="{{ SERVER_URL }}/report/">Relatórios</a>
+{% endblock %}
+
+{% block content_title %}Grade de horários por dia da semana{% endblock %}
+{% block content %}
+
+<div class="module filtered" id="changelist">
+<div id="toolbar">
+
+</div>
+<div>
+    <p><h2>Grade de horários</h2>
+</div>
+
+ <table class="orderable">
+        <tr>
+            <td><strong>Cliente</strong></td>
+            <td><strong>Segunda-Feira</strong></td>
+            <td><strong>Terça-Feira</strong></td>
+            <td><strong>Quarta-Feira</strong></td>
+            <td><strong>Quinta-Feira</strong></td>
+            <td><strong>Sexta-Feira</strong></td>
+            <td><strong>Sábado</strong></td>
+            <td><strong>Domingo</strong></td>
+        </tr>
+
+    {% for hr_seg in seg %}
+     {% for hr_ter in seg %}
+    <tr>
+        <td>{{ hr_seg.cliente }}</td>
+        <td>{{ hr_seg.hr_grade }}</td>
+        <td>{{ hr_ter.hr_grade }}</td>
+        <td>{{ hr_qua.hr_grade }}</td>
+        <td>{{ hr_qui.hr_grade }}</td>
+        <td>{{ hr_sex.hr_grade }}</td>
+        <td>{{ hr_sab.hr_grade }}</td>
+        <td>{{ hr_dom.hr_grade }}</td>
+
+    </tr>
+     {% endfor %}
+    {% endfor %}
+
+  </table>
+    {% endblock content %}
+        </form>
+    </div>
+</div>
