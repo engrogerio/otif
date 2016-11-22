@@ -6,23 +6,23 @@
 {% load i18n admin_urls admin_static admin_list %}
 
 {% block breadcrumbs %}
-    <a href="{{ SERVER_URL }}/">Início</a>&nbsp> <a href="{{ SERVER_URL }}/report/">Relatórios</a>
+    <a href="{{ SERVER_URL }}/">Início</a>&nbsp> <a href="{{ SERVER_URL }}/grade/">Grade</a>
 {% endblock %}
 
 {% block content_title %}Grade de horários por dia da semana{% endblock %}
 {% block content %}
-
+{% load partition %}
 <div class="module filtered" id="changelist">
 <div id="toolbar">
 
 </div>
 <div>
-    <p><h2>Grade de horários</h2>
+    <p><h2>Cliente:{{ cliente }}</h2>
 </div>
 
  <table class="orderable">
         <tr>
-            <td><strong>Cliente</strong></td>
+            <!--<td><strong>Cliente</strong></td>-->
             <td><strong>Segunda-Feira</strong></td>
             <td><strong>Terça-Feira</strong></td>
             <td><strong>Quarta-Feira</strong></td>
@@ -32,21 +32,19 @@
             <td><strong>Domingo</strong></td>
         </tr>
 
-    {% for hr_seg in seg %}
-     {% for hr_ter in seg %}
-    <tr>
-        <td>{{ hr_seg.cliente }}</td>
-        <td>{{ hr_seg.hr_grade }}</td>
-        <td>{{ hr_ter.hr_grade }}</td>
-        <td>{{ hr_qua.hr_grade }}</td>
-        <td>{{ hr_qui.hr_grade }}</td>
-        <td>{{ hr_sex.hr_grade }}</td>
-        <td>{{ hr_sab.hr_grade }}</td>
-        <td>{{ hr_dom.hr_grade }}</td>
-
-    </tr>
-     {% endfor %}
+{% load partition %}
+ {% for row in hr|columns:7%}
+     <tr>
+    {% for col in row %}
+        <td><a href="{{ col.0.id }}">{{ col.0}}
+            {% if col.0 %}
+            :00
+            {% else %}
+            <a href="">----</a>
+            {% endif %}</a></td>
     {% endfor %}
+     </tr>
+ {% endfor %}
 
   </table>
     {% endblock content %}

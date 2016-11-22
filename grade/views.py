@@ -3,6 +3,7 @@ from django.views import generic
 from grade.models import Grade
 from django.http import Http404
 
+
 # Create your views here.
 class GradeListView(generic.ListView):
     template_name = 'grade_list.html'
@@ -11,19 +12,32 @@ class GradeListView(generic.ListView):
     def get_context_data(self, **kwargs):
         if self.request.user.is_authenticated():
             context = super(GradeListView, self).get_context_data(**kwargs)
-            print(context)
-
+            context['week_days'] = range(0,7)
+            context['hours'] = range(0,24)
+            cliente='ABCD'
+            context['cliente'] = cliente
+            context['hora'] = Grade.objects.all()
+            hr=[]
             try:
-                context['seg'] = Grade.objects.filter(dt_semana=0).order_by('hr_grade')
-                context['ter'] = Grade.objects.filter(dt_semana=1).order_by('hr_grade')
-                context['qua'] = Grade.objects.filter(dt_semana=2).order_by('hr_grade')
-                context['qui'] = Grade.objects.filter(dt_semana=3).order_by('hr_grade')
-                context['sex'] = Grade.objects.filter(dt_semana=4).order_by('hr_grade')
-                context['sab'] = Grade.objects.filter(dt_semana=5).order_by('hr_grade')
-                context['dom'] = Grade.objects.filter(dt_semana=6).order_by('hr_grade')
+                for semana in range(0,7):
+                    for hora in range(0,24):
+                        hr.append(Grade.objects.filter(hr_grade=hora).filter(dt_semana=semana))
 
             except:
                 Http404
+            context['hr']=hr
+            return context
+        else:
+            raise Http404
+
+class GradeDetailView(generic.DetailView):
+    template_name = 'grade_detail.html'
+    model = Grade
+
+    def get_context_data(self, **kwargs):
+        if self.request.user.is_authenticated():
+            context = super(GradeListView, self).get_context_data(**kwargs)
+            context['grade'] = Grade.objects.get(id=85)
             return context
         else:
             raise Http404

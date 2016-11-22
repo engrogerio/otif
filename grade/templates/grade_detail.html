@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | {{ 'Sistema de Gestão de Otif - Aryzta - Invent ' }}{% endblock %}
+{% block branding %}
+<h1 id="site-name"><a href="">Invent - Sistema de Gestão de Otif</a></h1>
+{% endblock %}
+{% load i18n admin_urls admin_static admin_list %}
+
+{% block breadcrumbs %}
+    <a href="{{ SERVER_URL }}/">Início</a>&nbsp> <a href="{{ SERVER_URL }}/grade/">Grade</a>
+{% endblock %}
+
+{% block content_title %}Grade de horários por dia da semana{% endblock %}
+{% block content %}
+{% load partition %}
+<div class="module filtered" id="changelist">
+<div id="toolbar">
+
+</div>
+<div>
+    <p><h2>Cliente:{{ cliente }}</h2>
+</div>
+
+    {% endblock content %}
+        </form>
+    </div>
+</div>

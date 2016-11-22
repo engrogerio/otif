@@ -89,50 +89,98 @@ select 'SBJAR','24:00:00','24:00:00','24:00:00','24:00:00','24:00:00','24:00:00'
 
 
 insert into grade_grade (nm_ab_cli,hr_grade,dt_semana)
-select 'ABCD','0:00:00' ,0
+select 'ABCD',0,0
 union
-select 'ABCD','1:00:00' ,0
+select 'ABCD',1,0
 union
-select 'ABCD','2:00:00' ,0
+select 'ABCD',2,0
 union
-select 'ABCD','3:00:00' ,0
+select 'ABCD',3,0
 union
-select 'ABCD','4:00:00' ,0
+select 'ABCD',4,0
 union
-select 'ABCD','5:00:00' ,0
+select 'ABCD',5,0
 union
-select 'ABCD','6:00:00' ,0
+select 'ABCD',6,0
 union
-select 'ABCD','7:00:00' ,0
+select 'ABCD',7,0
 union
-select 'ABCD','8:00:00' ,0
+select 'ABCD',8,0
 union
-select 'ABCD','9:00:00' ,0
+select 'ABCD',9,0
 union
-select 'ABCD','10:00:00',0
+select 'ABCD',10,0
 union
-select 'ABCD','11:00:00',0
+select 'ABCD',11,0
 union
-select 'ABCD','12:00:00',0
+select 'ABCD',12,0
 union
-select 'ABCD','13:00:00',0
+select 'ABCD',13,0
 union
-select 'ABCD','14:00:00',0
+select 'ABCD',14,0
 union
-select 'ABCD','15:00:00',0
+select 'ABCD',15,0
 union
-select 'ABCD','16:00:00',0
+select 'ABCD',16,0
 union
-select 'ABCD','17:00:00',0
+select 'ABCD',17,0
 union
-select 'ABCD','18:00:00',0
+select 'ABCD',18,0
 union
-select 'ABCD','19:00:00',0
+select 'ABCD',19,0
 union
-select 'ABCD','20:00:00',0
+select 'ABCD',20,0
 union
-select 'ABCD','21:00:00',0
+select 'ABCD',21,0
 union
-select 'ABCD','22:00:00',0
+select 'ABCD',22,0
 union
-select 'ABCD','23:00:00',0
+select 'ABCD',23,0
+union
+select 'ABCD',0,1
+union
+select 'ABCD',1,1
+union
+select 'ABCD',2,1
+union
+select 'ABCD',3,1
+union
+select 'ABCD',4,1
+union
+select 'ABCD',5,1
+union
+select 'ABCD',6,1
+union
+select 'ABCD',7,2
+union
+select 'ABCD',8,2
+union
+select 'ABCD',9,2
+union
+select 'ABCD',10,2
+union
+select 'ABCD',11,3
+union
+select 'ABCD',12,3
+union
+select 'ABCD',13,4
+union
+select 'ABCD',14,2
+union
+select 'ABCD',15,2
+union
+select 'ABCD',16,4
+union
+select 'ABCD',17,1
+union
+select 'ABCD',18,1
+union
+select 'ABCD',19,2
+union
+select 'ABCD',20,3
+union
+select 'ABCD',21,4
+union
+select 'ABCD',22,5
+union
+select 'ABCD',23,6
