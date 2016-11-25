@@ -184,3 +184,27 @@ union
 select 'ABCD',22,5
 union
 select 'ABCD',23,6
+
+
+insert into pedido_carregamento
+(`id`, `cd_estab`,`nr_nota_fis`,`dt_saida`	,`ds_placa`,`ds_transp`,`nr_lacre`,`dt_hr_chegada`,`dt_hr_ini_carga`,
+`dt_hr_fim_carga`,`dt_hr_liberacao`,`ds_status_cheg`,`ds_status_lib`,`ds_obs_carga`,`id_no_show`,`vl_fixo`,
+`vl_base_multa`,`vl_multa`,`nm_ab_cli`,`grade_id`)
+
+select id, cd_estab,nr_nota_fis,""
+, ds_placa, ds_transp,nr_lacre,dt_hr_chegada,dt_hr_ini_carga,dt_hr_fim_carga, dt_hr_liberacao,ds_status_cheg,
+ds_get_status_lib ,ds_obs_carga, id_no_show,vl_fixo,  vl_base_multa,vl_multa, nm_ab_cliente,0
+from carregamento
+
+insert into pedido_item
+(`id`,`cd_estab`,`nr_nota_fis`,`nr_pedido`,`ds_ord_compra`,`cd_produto`,`un_embalagem`,`qt_embalagem`,
+`qt_pilha`,`qt_carregada`,`qt_falta`,`id_motivo`,`qt_pallet`,`vl_base_multa`,	`vl_multa`	,`carregamento_id`,`nm_ab_cli`)
+
+select i.id, i.cd_estab,i.nr_nota_fis,0,0,i.cd_produto,i.un_embalagem,i.qt_embalagem,
+i.qt_pilha,i.qt_carregada,i.qt_falta,i.id_motivo,i.qt_pallet, i.vl_base_multa,i.vl_multa,c.id,i.nm_ab_cliente
+from item i
+inner join pedido_carregamento c on c.cd_estab=i.cd_estab and c.nm_ab_cli = i.nm_ab_cliente and c.nr_nota_fis=i.nr_nota_fis
+
+
+insert into cliente_cliente(`nm_ab_cli`,`hr_lim_carga`,`hr_lim_lib`,`ds_classe_cli`)
+select distinct nm_ab_cli,1,1,'Distribuidor' from pedido_carregamento

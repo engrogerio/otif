@@ -28,4 +28,4 @@ class ClienteAdmin(admin.ModelAdmin):
     search_fields = ['nm_ab_cli','nr_pedido' ,]
 
 
-admin.site.register(Cliente) #, ClienteAdmin)
+admin.site.register(Cliente, ClienteAdmin)

@@ -2,23 +2,20 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-from django.conf import settings
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         ('cliente', '0001_initial'),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('grade', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Base',
+            name='Carregamento',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('dt_atlz', models.DateTimeField(null=b'true', verbose_name=b'Data atualiza\xc3\xa7\xc3\xa3o', blank=b'true')),
                 ('cd_estab', models.CharField(max_length=3, null=b'true', verbose_name=b'C\xc3\xb3digo do estab.', blank=b'true')),
                 ('nr_nota_fis', models.CharField(max_length=32, null=b'true', verbose_name=b'N\xc3\xbamero da Nota fiscal', blank=b'true')),
                 ('dt_saida', models.DateField(null=b'true', verbose_name=b'Data de sa\xc3\xadda do Carregamento', blank=b'true')),
@@ -40,7 +37,6 @@ class Migration(migrations.Migration):
                 ('st_libera', models.CharField(default=b'No Hor\xc3\xa1rio', max_length=15, null=b'true', verbose_name=b'Status de Libera\xc3\xa7\xc3\xa3o', blank=b'true')),
                 ('cliente', models.ForeignKey(db_column=b'nm_ab_cli', to_field=b'nm_ab_cli', blank=b'true', to='cliente.Cliente', null=b'true', verbose_name=b'Cliente')),
                 ('grade', models.ForeignKey(verbose_name=b'Hora da grade do cliente', blank=b'true', to='grade.Grade', null=b'true')),
-                ('usr_atlz', models.ForeignKey(blank=b'true', to=settings.AUTH_USER_MODEL, null=b'true')),
             ],
             options={
                 'abstract': False,
@@ -50,7 +46,6 @@ class Migration(migrations.Migration):
             name='Item',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('dt_atlz', models.DateTimeField(null=b'true', verbose_name=b'Data atualiza\xc3\xa7\xc3\xa3o', blank=b'true')),
                 ('cd_estab', models.CharField(max_length=3, null=b'true', verbose_name=b'C\xc3\xb3digo do estab.', blank=b'true')),
                 ('nr_nota_fis', models.CharField(max_length=32, null=b'true', verbose_name=b'N\xc3\xbamero da Nota fiscal', blank=b'true')),
                 ('nr_pedido', models.CharField(max_length=24, null=b'true', verbose_name=b'N\xc3\xbamero do pedido do cliente', blank=b'true')),
@@ -65,9 +60,8 @@ class Migration(migrations.Migration):
                 ('qt_pallet', models.IntegerField(null=b'true', verbose_name=b'Quantidade de Pallets', blank=b'true')),
                 ('vl_base_multa', models.DecimalField(null=b'true', verbose_name=b'Valor base da multa', max_digits=17, decimal_places=2, blank=b'true')),
                 ('vl_multa', models.DecimalField(null=b'true', verbose_name=b'Valor da multa', max_digits=17, decimal_places=2, blank=b'true')),
-                ('base', models.ForeignKey(to='pedido.Base')),
+                ('carregamento', models.ForeignKey(to='pedido.Carregamento')),
                 ('cliente', models.ForeignKey(db_column=b'nm_ab_cli', to_field=b'nm_ab_cli', blank=b'true', to='cliente.Cliente', null=b'true', verbose_name=b'Cliente')),
-                ('usr_atlz', models.ForeignKey(blank=b'true', to=settings.AUTH_USER_MODEL, null=b'true')),
             ],
             options={
                 'abstract': False,

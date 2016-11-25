@@ -11,20 +11,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='base',
-            name='dt_atlz',
+        migrations.RenameField(
+            model_name='carregamento',
+            old_name='ds_get_status_lib',
+            new_name='ds_status_lib',
         ),
         migrations.RemoveField(
-            model_name='base',
-            name='usr_atlz',
+            model_name='carregamento',
+            name='st_chegada',
         ),
         migrations.RemoveField(
-            model_name='item',
-            name='dt_atlz',
-        ),
-        migrations.RemoveField(
-            model_name='item',
-            name='usr_atlz',
+            model_name='carregamento',
+            name='st_libera',
         ),
     ]

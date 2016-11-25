@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from django.contrib import admin
-from pedido.models import Base, Item
+from pedido.models import Carregamento, Item
 from grade.models import Grade
 from cliente.models import Cliente
 from django import forms
@@ -10,17 +10,20 @@ from django.db.models import Func
 
 # Register your models here.
 
-class PedidoBaseAdminForm(forms.ModelForm):
+class PedidoCarregamentoAdminForm(forms.ModelForm):
     class Meta:
-        model = Base
+        model = Carregamento
         fields = "__all__"
 
     def __init__(self, *args, **kwds):
-        super(PedidoBaseAdminForm, self).__init__(*args, **kwds)
-        cli=self.instance.cliente
+        super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwds)
+        #cli=self.instance.cliente
         if self.instance.grade:
-            grade = Grade.objects.order_by(Func('hr_grade_seg', function='"time"'))
-            self.fields['grade'].queryset = grade
+            grade_queryset = Grade.objects.order_by(Func('hr_grade', function='"time"'))
+        try:
+            self.fields['grade'].queryset = grade_queryset
+        except:
+            pass
 
 class ItemInline(admin.TabularInline):
     model = Item
@@ -53,7 +56,7 @@ class ItemInline(admin.TabularInline):
 #
 #     def qt_embalagem(self, instance):
 #         return instance.item.qt_embalagem
-#
+#PedidoBaseAdminForm
 #     def qt_pilha(self, instance):
 #         return instance.item.qt_pilha
 #
@@ -104,8 +107,8 @@ class EstabListFilter(admin.SimpleListFilter):
 
 
 
-class PedidoBaseAdmin(admin.ModelAdmin):
-    form = PedidoBaseAdminForm
+class PedidoCarregamentoAdmin(admin.ModelAdmin):
+    form = PedidoCarregamentoAdminForm
 
     def related_cliente_grade(self, obj):
         try:
@@ -116,14 +119,14 @@ class PedidoBaseAdmin(admin.ModelAdmin):
     inlines = [ItemInline,]
     #exclude = ('item',)
     verbose_name = ('Pedido')
-    list_display = ('dt_saida', 'grade', 'cliente', 'cd_estab', 'ds_transp', ) #'dt_atlz', 'item__nr_nota_fis', 'item__nr_pedido', )
-    readonly_fields = ('st_chegada','st_libera')
+    list_display = ('nr_nota_fis','dt_saida', 'grade', 'cliente', 'cd_estab', 'ds_transp', ) #'dt_atlz', 'item__nr_nota_fis', 'item__nr_pedido', )
+    readonly_fields = ('ds_status_cheg','ds_status_lib')
     fieldsets = (
         (None, {'fields':(
                           # ('dt_atlz', 'usr_atlz'),
                           ('dt_saida','grade' ),('cd_estab', 'cliente',), # 'ds_classe_cli'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
-                        ('st_chegada','st_libera'))
+                        ('ds_status_cheg','ds_status_lib'))
                 }),
         ('Acompanhamento do Carregamento',{
             'classes':('collapse',),
@@ -133,5 +136,5 @@ class PedidoBaseAdmin(admin.ModelAdmin):
     #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
     list_filter = ('cd_estab',) #'nm_ab_cli') #'[EstabListFilter,]
     search_fields = ['nr_nota_fis','nr_pedido' ,]
-admin.site.register(Base, PedidoBaseAdmin)
+admin.site.register(Carregamento, PedidoCarregamentoAdmin)
 admin.site.register(Item)

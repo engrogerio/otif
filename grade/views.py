@@ -36,8 +36,15 @@ class GradeDetailView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         if self.request.user.is_authenticated():
-            context = super(GradeListView, self).get_context_data(**kwargs)
+            context = super(GradeDetailView, self).get_context_data(**kwargs)
             context['grade'] = Grade.objects.get(id=85)
             return context
+        else:
+            raise Http404
+
+    def grade_detail(self,request, id=None):
+        if request.user.is_authenticated():
+            context={'a':1}
+            return render(request, "treinamento_detail.html", context)
         else:
             raise Http404

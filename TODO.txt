@@ -1,4 +1,6 @@
-1- Finalizar form da Grade
+1- Finalizar form da Grade -OK
+    1.1 -Repensar modelo
+
 2- ajustar dropdown da grade na form do pedido
-3- Mudar nome pedido_base/pedido_item para pedido_carregamento/pedido_item
+3- Mudar nome pedido_base/pedido_item para pedido_carregamento/pedido_item - OK
 4- Alterar cadastro_cliente e cadastro_grade para cliente_cliente e cadastro_cadastro
