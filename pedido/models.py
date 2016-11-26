@@ -4,6 +4,7 @@ from django.db import models
 from sgo.models import OtifModel
 from grade.models import Grade
 from cliente.models import Cliente
+import datetime
 
 """
 Modelo de pedidos importados do Totvs ERP via arquivo txt.
@@ -67,10 +68,22 @@ Aplicação: Pedido
 
 
 class Carregamento(OtifModel):
+
+    NA_PLANTA = 1
+    INICIO = 2
+    FIM = 3
+    LIBERADO = 4
+    STATUS=(
+        (NA_PLANTA,'Caminhão na planta'),
+        (INICIO, 'Carregamento iniciado'),
+        (FIM, 'Carregamento finalizado'),
+        (LIBERADO, 'Caminhão liberado')
+    )
+
     cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
-    nr_nota_fis = models.CharField('Número da Nota fiscal', max_length=32, null='true', blank='true', )
+    nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
     dt_saida = models.DateField('Data de saída do Carregamento', null='true', blank='true', )
     grade = models.ForeignKey(Grade, verbose_name='Hora da grade do cliente', null='true', blank='true', )
     ds_placa = models.CharField('Placa do veículo', max_length=8, null='true', blank='true', )
@@ -80,6 +93,7 @@ class Carregamento(OtifModel):
     dt_hr_ini_carga = models.DateTimeField('Inicio do carregamento', null='true', blank='true', )
     dt_hr_fim_carga = models.DateTimeField('Fim do carregamento', null='true', blank='true', )
     dt_hr_liberacao = models.DateTimeField('Liberação do caminhão', null='true', blank='true', )
+    ds_status_carrega = models.IntegerField('Status', choices=STATUS, null='true', blank='true')
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
@@ -92,19 +106,34 @@ class Carregamento(OtifModel):
     vl_multa = models.DecimalField('Valor da multa', null='true', blank='true', max_digits=17, decimal_places=2)
 
     def __unicode__(self):
-        return '' or ''.join([self.cd_estab, ]) #' - ', self.cliente.nm_ab_cli, self.nr_nota_fis])
+        return '' or ''.join([self.cd_estab, self.cliente.nm_ab_cli, self.nr_nota_fis])
 
     def set_chegada(self):
-        pass
+        self.dt_hr_chegada=datetime.datetime.now()
+        self.save()
 
     def set_inicio(self):
-        pass
+        self.dt_hr_ini_carga=datetime.datetime.now()
+        self.save()
 
     def set_fim(self):
+        self.dt_hr_fim_carga=datetime.datetime.now()
+        self.save()
+
+    def set_libera(self):
+        self.dt_hr_liberacao=datetime.datetime.now()
+        self.save()
+
+    def set_status_cheg(self):
+        """Calculado(Se Hr de chegada > (data e Hr Grade - Limite carga da tabela ARZ_LIMITE_CLIENTE) então "Atrasado"
+        senão "No Horário")"""
         pass
 
-    def set_liberacao(self):
+    def set_status_lib(self):
+        """Calculado(Se Hr de liberação > (data e Hr Grade + Limite liberação da tabela ARZ_LIMITE_CLIENTE) então
+        "Atrasado" senão "No Horário")"""
         pass
+
 
 class Item(OtifModel):
     cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )

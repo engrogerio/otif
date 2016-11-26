@@ -32,4 +32,4 @@ class GradeAdmin(admin.ModelAdmin):
 
 # Register your models here.
 
-#admin.site.register(Grade, GradeAdmin)
+admin.site.register(Grade, GradeAdmin)

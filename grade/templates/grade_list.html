@@ -11,10 +11,23 @@
 
 {% block content_title %}Grade de horários por dia da semana{% endblock %}
 {% block content %}
+
+
 {% load partition %}
 <div class="module filtered" id="changelist">
 <div id="toolbar">
+    <div id="searchform">
 
+<form action="{% url 'grade_list' %}" method="POST" >{% csrf_token %}
+        &nbspCliente<br>
+        <select name="dropdown">
+	{% for cliente in clientes %}
+		<option value="{{ cliente.nm_ab_cli }}">{{ cliente.nm_ab_cli }}</option>
+	{% endfor %}
+</select>
+        <input type="submit" value="Selecionar" />
+    </form>
+</div>
 </div>
 <div>
     <p><h2>Cliente:{{ cliente }}</h2>

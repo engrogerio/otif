@@ -19,7 +19,7 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwds)
         #cli=self.instance.cliente
         if self.instance.grade:
-            grade_queryset = Grade.objects.order_by(Func('hr_grade', function='"time"'))
+            grade_queryset = Grade.objects.order_by('hr_grade')
         try:
             self.fields['grade'].queryset = grade_queryset
         except:
@@ -36,43 +36,6 @@ class ItemInline(admin.TabularInline):
 
     adicionar_multa.allow_tags = True
 
-
-# class PedidoItemInline(admin.TabularInline):
-#     extra = 0
-#     model = Base.item.through
-#     #fields = ['qt_carregada', ]
-#     readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
-#                         'qt_pallet']
-#     exclude = ('item',)
-#
-#     def nr_nota_fis(self, instance):
-#         return instance.item.nr_nota_fis
-#
-#     def cd_produto(self, instance):
-#         return instance.item.cd_produto
-#
-#     def un_embalagem(self, instance):
-#         return instance.item.un_embalagem
-#
-#     def qt_embalagem(self, instance):
-#         return instance.item.qt_embalagem
-#PedidoBaseAdminForm
-#     def qt_pilha(self, instance):
-#         return instance.item.qt_pilha
-#
-#     def qt_carregada(self, instance):
-#         return instance.item.qt_carregada
-#
-#     def qt_falta(self, instance):
-#         return instance.item.qt_falta
-#
-#     def qt_pallet(self, instance):
-#         return instance.item.qt_pallet
-#
-#     cd_produto.short_description = 'código do produto'
-#
-#     #fields = ('nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_carregada','qt_falta','qt_pallet')
-#     #readonly_fields = ('nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha')
 
 class EstabListFilter(admin.SimpleListFilter):
     title = ('estabelecimento')
@@ -110,6 +73,56 @@ class EstabListFilter(admin.SimpleListFilter):
 class PedidoCarregamentoAdmin(admin.ModelAdmin):
     form = PedidoCarregamentoAdminForm
 
+    def set_chegada(self, request, queryset):
+        # Para cada carregamento selecionado, seta a hora de chegada do caminhão
+        for c in queryset:
+            c.set_chegada() #carregamento=c)
+        rows_updated = queryset.update(ds_status_carrega=Carregamento.NA_PLANTA,)
+        if rows_updated == 1:
+            message_bit = "1 carregamento foi"
+        else:
+            message_bit = "%s carregamentos foram" % rows_updated
+        self.message_user(request, "%s marcados como caminhão na planta." % message_bit)
+    set_chegada.short_description='Sinalizar chegada do caminhão'
+
+    def set_inicio(self, request, queryset):
+        # Para cada carregamento selecionado, seta a hora de início do carregamento
+        for c in queryset:
+            c.set_inicio()
+        rows_updated = queryset.update(ds_status_carrega=Carregamento.INICIO,)
+        if rows_updated == 1:
+            message_bit = "1 carregamento foi"
+        else:
+            message_bit = "%s carregamentos foram" % rows_updated
+        self.message_user(request, "%s marcados como iniciado(s)." % message_bit)
+    set_inicio.short_description='Sinalizar início do carregamento'
+
+    def set_fim(self, request, queryset):
+        # Para cada carregamento selecionado, seta a hora de fim do carregamento
+        for c in queryset:
+            c.set_fim()
+        rows_updated = queryset.update(ds_status_carrega=Carregamento.FIM,)
+        if rows_updated == 1:
+            message_bit = "1 carregamento foi"
+        else:
+            message_bit = "%s carregamentos foram" % rows_updated
+        self.message_user(request, "%s marcados como finalizado(s)." % message_bit)
+    set_fim.short_description='Sinalizar fim do carregamento'
+
+    def set_libera(self, request, queryset):
+        # Para cada carregamento selecionado, seta a hora de liberação do caminhão
+        for c in queryset:
+            c.set_libera() #carregamento=c)
+        rows_updated = queryset.update(ds_status_carrega=Carregamento.LIBERADO,)
+        if rows_updated == 1:
+            message_bit = "1 carregamento foi"
+        else:
+            message_bit = "%s carregamentos foram" % rows_updated
+        self.message_user(request, "%s marcados como caminhão liberado." % message_bit)
+    set_libera.short_description='Sinalizar liberação do caminhão'
+
+    actions=[set_chegada, set_inicio, set_fim, set_libera]
+
     def related_cliente_grade(self, obj):
         try:
             return '%s' % obj.grade
@@ -119,14 +132,14 @@ class PedidoCarregamentoAdmin(admin.ModelAdmin):
     inlines = [ItemInline,]
     #exclude = ('item',)
     verbose_name = ('Pedido')
-    list_display = ('nr_nota_fis','dt_saida', 'grade', 'cliente', 'cd_estab', 'ds_transp', ) #'dt_atlz', 'item__nr_nota_fis', 'item__nr_pedido', )
-    readonly_fields = ('ds_status_cheg','ds_status_lib')
+    list_display = ('nr_nota_fis','dt_saida', 'grade', 'cliente', 'cd_estab', 'ds_transp','ds_status_carrega' )
+    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'cd_estab', 'ds_transp', )
     fieldsets = (
         (None, {'fields':(
                           # ('dt_atlz', 'usr_atlz'),
-                          ('dt_saida','grade' ),('cd_estab', 'cliente',), # 'ds_classe_cli'),
+                          ('cd_estab','cliente','dt_saida','grade' ),
                         ('ds_transp', 'ds_placa','nr_lacre'),
-                        ('ds_status_cheg','ds_status_lib'))
+                        ('ds_status_carrega','ds_status_cheg','ds_status_lib'))
                 }),
         ('Acompanhamento do Carregamento',{
             'classes':('collapse',),
@@ -135,6 +148,6 @@ class PedidoCarregamentoAdmin(admin.ModelAdmin):
     )
     #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
     list_filter = ('cd_estab',) #'nm_ab_cli') #'[EstabListFilter,]
-    search_fields = ['nr_nota_fis','nr_pedido' ,]
+    search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
 admin.site.register(Carregamento, PedidoCarregamentoAdmin)
 admin.site.register(Item)

@@ -1,13 +1,10 @@
 # -*- encoding: utf-8 -*-
-from django.db import models
+from django import forms
 from sgo.models import OtifModel
 from cliente.models import Cliente
-import datetime
-# Create your models here.
 
 
-
-class Grade(OtifModel):
+class GradeForm(forms.ModelForm):
     SEG = 0
     TER = 1
     QUA = 2
@@ -78,22 +75,14 @@ class Grade(OtifModel):
         (HR23, '23:00')
     )
 
-    cliente = models.ForeignKey(Cliente, null='true', blank='true', to_field='nm_ab_cli', db_column='nm_ab_cli')
-    hr_grade = models.IntegerField ('Horário', choices = HORA_GRADE, null='true', blank='true', )
-    dt_semana = models.IntegerField('Dia da semana',choices = DIA_SEMANA, null='true', blank='true',)
-    is_disponivel = models.BooleanField(default=True)
+    cliente = forms.ForeignKey(Cliente, null='true', blank='true', to_field='nm_ab_cli', db_column='nm_ab_cli')
+    # hr_grade = forms.ChoiceField ('Horário', choices = HORA_GRADE, required=True, )
+    # dt_semana = forms.ChoiceField('Dia da semana',choices = DIA_SEMANA,  required=True,)
+    # is_disponivel = models.BooleanField(default=True)
 
-    def get_grade(self,cliente,data):
-        data_aux = datetime.datetime.strptime(data, "%d/%m/%Y").date()
-        dia_semana = datetime.datetime(data_aux).weekday()
-        grade=Grade.objects.filter(cliente=cliente).filter(dt_semana=dia_semana).filter(is_disponivel = True)
-        return grade
+    class Meta:
+        model = Grade
 
-    def cria_grades_para_cliente(self,cliente):
-        for semana in range(0,7):
-            for hora in range(0,24):
-                grade=Grade.objects.create(cliente=cliente, hr_grade=hora, dt_semana=semana, is_disponivel=True)
-                grade.save()
 
     def __unicode__(self):
         return u"%s" % (self.get_hr_grade_display())

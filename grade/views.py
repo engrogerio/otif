@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views import generic
 from grade.models import Grade
+from cliente.models import Cliente
 from django.http import Http404
 
 
@@ -14,8 +15,7 @@ class GradeListView(generic.ListView):
             context = super(GradeListView, self).get_context_data(**kwargs)
             context['week_days'] = range(0,7)
             context['hours'] = range(0,24)
-            cliente='ABCD'
-            context['cliente'] = cliente
+            context['cliente'] = Cliente.objects.all()
             context['hora'] = Grade.objects.all()
             hr=[]
             try:
