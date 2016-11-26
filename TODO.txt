@@ -3,4 +3,23 @@
 
 2- ajustar dropdown da grade na form do pedido
 3- Mudar nome pedido_base/pedido_item para pedido_carregamento/pedido_item - OK
-4- Alterar cadastro_cliente e cadastro_grade para cliente_cliente e cadastro_cadastro
+4- Alterar cadastro_cliente e cadastro_grade para cliente_cliente e cadastro_cadastro -OK
+
+4- Arrumar templates
+
+5- Criar App Multa com classes Carregamento e Item
+Multa.carregamento
+vl.multa = Calculado (Se "id no show" = S então (("Valor base multa" * 0,05)+"Vl Fixo") senão, 0)
+
+Multa.item
+vl.multa = Calculado (Falta * Valor base multa)
+
+Tipos de multa
+
+-Fill Rate
+-No Show
+
+6- Criar campos de Obs por linha do pedido
+
+7- Campo de quantidade carregada deve ser automatico read only =qtd embalagens-qtd falta
+

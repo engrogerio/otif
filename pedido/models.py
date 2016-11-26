@@ -69,11 +69,13 @@ Aplicação: Pedido
 
 class Carregamento(OtifModel):
 
+    PROGRAMADO = 0
     NA_PLANTA = 1
     INICIO = 2
     FIM = 3
     LIBERADO = 4
     STATUS=(
+        (PROGRAMADO,'Carregamento programado'),
         (NA_PLANTA,'Caminhão na planta'),
         (INICIO, 'Carregamento iniciado'),
         (FIM, 'Carregamento finalizado'),
@@ -93,7 +95,7 @@ class Carregamento(OtifModel):
     dt_hr_ini_carga = models.DateTimeField('Inicio do carregamento', null='true', blank='true', )
     dt_hr_fim_carga = models.DateTimeField('Fim do carregamento', null='true', blank='true', )
     dt_hr_liberacao = models.DateTimeField('Liberação do caminhão', null='true', blank='true', )
-    ds_status_carrega = models.IntegerField('Status', choices=STATUS, null='true', blank='true')
+    ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=PROGRAMADO, null='true', blank='true')
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
@@ -110,6 +112,7 @@ class Carregamento(OtifModel):
 
     def set_chegada(self):
         self.dt_hr_chegada=datetime.datetime.now()
+        self.ds_status_cheg=self.get_status_cheg()
         self.save()
 
     def set_inicio(self):
@@ -122,17 +125,31 @@ class Carregamento(OtifModel):
 
     def set_libera(self):
         self.dt_hr_liberacao=datetime.datetime.now()
+        self.ds_status_lib=self.get_status_lib()
         self.save()
 
-    def set_status_cheg(self):
+    def get_status_cheg(self):
         """Calculado(Se Hr de chegada > (data e Hr Grade - Limite carga da tabela ARZ_LIMITE_CLIENTE) então "Atrasado"
         senão "No Horário")"""
-        pass
+        # TODO: Se não está definido horas limite para o carregamento / liberação, considerar =0. Outra regra?
+        dt_maxima = (
+            datetime.datetime.combine(self.dt_saida, datetime.time(self.grade.hr_grade,0,0)) - datetime.timedelta(
+                0, 3600* (self.cliente.hr_lim_carga or 0),0))
+        if self.dt_hr_chegada > dt_maxima:
+            return "Atrasado"
+        else:
+            return "No Horário"
 
-    def set_status_lib(self):
+    def get_status_lib(self):
         """Calculado(Se Hr de liberação > (data e Hr Grade + Limite liberação da tabela ARZ_LIMITE_CLIENTE) então
         "Atrasado" senão "No Horário")"""
-        pass
+        dt_maxima = (
+            datetime.combine(self.dt_saida, datetime.time(self.grade.hr_grade,0,0)) + datetime.timedelta(
+                0, 3600* (self.cliente.hr_lim_lib or 0),0))
+        if self.dt_hr_liberacao > dt_maxima:
+            return "Atrasado"
+        else:
+            return "No Horário"
 
 
 class Item(OtifModel):

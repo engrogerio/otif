@@ -28,8 +28,8 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
 class ItemInline(admin.TabularInline):
     model = Item
     extra = 0
-    fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta', 'qt_carregada', 'qt_pallet', 'adicionar_multa']
-    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'adicionar_multa']
+    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta', 'qt_carregada', 'qt_pallet', 'adicionar_multa']
+    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'adicionar_multa', 'ds_ord_compra']
 
     def adicionar_multa(self, obj):
         return '<a href="/pedido/item/'+str(obj.id)+'/">Ver Ítem</a>'
@@ -147,7 +147,7 @@ class PedidoCarregamentoAdmin(admin.ModelAdmin):
         })
     )
     #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
-    list_filter = ('cd_estab',) #'nm_ab_cli') #'[EstabListFilter,]
+    list_filter = ('cd_estab','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
 admin.site.register(Carregamento, PedidoCarregamentoAdmin)
 admin.site.register(Item)
