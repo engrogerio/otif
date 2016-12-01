@@ -6,9 +6,10 @@ from grade.models import Grade
 from cliente.models import Cliente
 from django import forms
 from django.db.models import Func
-
+from sgo.admin import SgpModelAdmin, SGPTabularInlineAdmin
 
 # Register your models here.
+
 
 class PedidoCarregamentoAdminForm(forms.ModelForm):
     class Meta:
@@ -25,16 +26,39 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         except:
             pass
 
-class ItemInline(admin.TabularInline):
+
+class ItemInline(SGPTabularInlineAdmin):
     model = Item
     extra = 0
-    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta', 'qt_carregada', 'qt_pallet', 'adicionar_multa']
-    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'adicionar_multa', 'ds_ord_compra']
+    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta', 'qt_carregada', 'qt_pallet', 'detalhe']
+    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'detalhe', 'ds_ord_compra', 'qt_carregada']
 
-    def adicionar_multa(self, obj):
-        return '<a href="/pedido/item/'+str(obj.id)+'/">Ver Ítem</a>'
+    def is_readonly(self):
+        return False
 
-    adicionar_multa.allow_tags = True
+    def detalhe(self, obj):
+        if obj.multa == None:
+            return '<a href="/multa/multa_item/add/">Adicionar detalhes</a>'
+        else:
+            return '<a href="/multa/multa_item/'+str(obj.multa)+'/"">Ver/editar detalhes</a>'
+
+    detalhe.allow_tags = True
+
+
+class ItemInline_ReadOnly(SGPTabularInlineAdmin):
+    model = Item
+    extra = 0
+    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
+              'qt_carregada', 'qt_pallet', 'detalhe']
+    readonly_fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
+              'qt_carregada', 'qt_pallet', 'detalhe']
+
+    def is_readonly(self):
+        return True
+
+    def detalhe(self, obj):
+        return '<a href="/multa/multaitem/add/">Ver detalhes</a>'
+    detalhe.allow_tags = True
 
 
 class EstabListFilter(admin.SimpleListFilter):
@@ -43,34 +67,7 @@ class EstabListFilter(admin.SimpleListFilter):
     default_value = None
 
 
-    # def lookups(self, request, model_admin):
-    #     lista_de_estab = []
-    #     queryset = Base.objects.all()
-    #     for estab in queryset:
-    #         lista_de_estab.append(
-    #             (str(estab.cd_estab), )
-    #         )
-    #         lista_de_estab.append(('','Todos'))
-    #
-    #     return lista_de_estab #sorted(lista_de_estab, key=lambda tp: tp[1])
-    #
-    #
-    # def choices(self, cl):
-    #     for lookup, title in self.lookup_choices:
-    #         yield {
-    #             'selected': self.value() == lookup,
-    #             'query_string': cl.get_query_string({
-    #                 self.parameter_name: lookup,
-    #             }, []),
-    #             'display': title,
-    #         }
-    #
-    # def queryset(self, request, queryset):
-    #     return queryset.filter(cd_estab = self.value())
-
-
-
-class PedidoCarregamentoAdmin(admin.ModelAdmin):
+class PedidoCarregamentoAdmin(SgpModelAdmin):
     form = PedidoCarregamentoAdminForm
 
     def set_chegada(self, request, queryset):
@@ -129,8 +126,7 @@ class PedidoCarregamentoAdmin(admin.ModelAdmin):
         except AttributeError:
             return None
 
-    inlines = [ItemInline,]
-    #exclude = ('item',)
+    inlines = [ItemInline_ReadOnly, ItemInline, ]
     verbose_name = ('Pedido')
     list_display = ('nr_nota_fis','dt_saida', 'grade', 'cliente', 'cd_estab', 'ds_transp','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'cd_estab', 'ds_transp', )

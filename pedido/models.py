@@ -5,6 +5,8 @@ from sgo.models import OtifModel
 from grade.models import Grade
 from cliente.models import Cliente
 import datetime
+from multa.models import MultaCarregamento
+from multa.models import MultaItem
 
 """
 Modelo de pedidos importados do Totvs ERP via arquivo txt.
@@ -82,6 +84,12 @@ class Carregamento(OtifModel):
         (LIBERADO, 'Caminhão liberado')
     )
 
+    SIM=1
+    NAO=2
+    NO_SHOW=(
+        (SIM,'S'),
+        (NAO,'N')
+    )
     cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
@@ -99,13 +107,8 @@ class Carregamento(OtifModel):
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
-    id_no_show = models.CharField('No Show', max_length=1, default= 'N')
-    # TODO: separar campos de multa para outra app devido a controle de acesso
-    vl_fixo = models.DecimalField('Valor fixo da multa', null='true', blank='true', max_digits=17,
-                                  decimal_places=2)
-    vl_base_multa = models.DecimalField('Valor base da multa', null='true', blank='true', max_digits=17,
-                                        decimal_places=2)
-    vl_multa = models.DecimalField('Valor da multa', null='true', blank='true', max_digits=17, decimal_places=2)
+    id_no_show = models.IntegerField('No Show', choices= NO_SHOW, default= NAO)
+    multa = models.ForeignKey(MultaCarregamento, verbose_name='Multa', null='true', blank='true')
 
     def __unicode__(self):
         return '' or ''.join([self.cd_estab, self.cliente.nm_ab_cli, self.nr_nota_fis])
@@ -167,11 +170,11 @@ class Item(OtifModel):
     qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
     id_motivo = models.IntegerField('Motivo', null='true', blank='true', )
     qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
-    # TODO: separar campos de multa para outra app devido a controle de acesso
-    vl_base_multa = models.DecimalField ('Valor base da multa', null='true', blank='true', max_digits=17,
-                                          decimal_places=2)
-    vl_multa =  models.DecimalField ('Valor da multa', null='true', blank='true', max_digits=17, decimal_places=2)
+    multa = models.ForeignKey(MultaItem, verbose_name='Multa', null='true', blank='true')
     carregamento = models.ForeignKey(Carregamento)
 
     def __unicode__(self):
         return self.cd_produto or ''
+
+    def get_qt_carregada(self):
+        return self.qt_embalagem-self.qt_falta

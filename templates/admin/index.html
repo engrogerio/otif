@@ -24,7 +24,6 @@
 
             {% if model.admin_url %}
                 <th scope="row"><a href="{{ model.admin_url }}">
-
                 {% if model.name  == "Entradas de log" %}
                    <i class="fa fa-book fa-3x"></i>
                 {% endif %}
@@ -34,16 +33,24 @@
                 {% if model.name  == "Usuários" %}
                    <i class="fa fa-user fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Pedidos" %}
+                {% if model.name  == "Clientes" %}
+                   <i class="fa fa-industry fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Grades" %}
+                   <i class="fa fa-calendar fa-3x" title=""></i>
+                {% endif %}
+                {% if model.name  == "Multa carregamentos" %}
+                   <i class="fa fa-thumbs-o-down fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Multa items" %}
+                   <i class="fa fa-thumbs-o-down fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Carregamentos" %}
                    <i class="fa fa-truck fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Unidades de Negócio" %}
-                   <i class="fa fa-industry fa-3x" title=""></i>
-                {% endif %}
-                {% if model.name  == "Unidades de Negócio do Usuário" %}
+                {% if model.name  == "Items" %}
                    <i class="fa fa-user-plus fa-3x"></i>
                 {% endif %}
-
 
             {{ model.name }}</a></th>
             {% else %}
@@ -57,13 +64,22 @@
                 {% if model.name  == "Usuários" %}
                    <i class="fa fa-user fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Pedidos" %}
+                {% if model.name  == "Clientes" %}
                    <i class="fa fa-truck fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Unidades de Negócio" %}
+                {% if model.name  == "Grades" %}
                    <i class="fa fa-industry fa-3x" title=""></i>
                 {% endif %}
-                {% if model.name  == "Unidades de Negócio do Usuário" %}
+                {% if model.name  == "Multa carregamentos" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Multa items" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Carregamentos" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Items" %}
                    <i class="fa fa-user-plus fa-3x"></i>
                 {% endif %}
                 {{ model.name }}

@@ -22,7 +22,7 @@ SERVER_URL = ''
 #SERVER_URL = '/sgo_teste'
 #SERVER_URL = '/sgo'
 
-TEMPLATE_DIRS = [ os.path.join(BASE_DIR, 'templates/sgo'),
+TEMPLATE_DIRS = [ os.path.join(BASE_DIR, 'templates'),
 
                 ]
 
@@ -83,6 +83,7 @@ INSTALLED_APPS = (
 	'pedido',
     'cliente',
     'grade',
+    'multa',
 
     # 'produto',
     # 'transportadora',
