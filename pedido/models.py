@@ -5,8 +5,7 @@ from sgo.models import OtifModel
 from grade.models import Grade
 from cliente.models import Cliente
 import datetime
-from multa.models import MultaCarregamento
-from multa.models import MultaItem
+
 
 """
 Modelo de pedidos importados do Totvs ERP via arquivo txt.
@@ -94,8 +93,8 @@ class Carregamento(OtifModel):
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
     nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
-    dt_saida = models.DateField('Data de saída do Carregamento', null='true', blank='true', )
-    grade = models.ForeignKey(Grade, verbose_name='Hora da grade do cliente', null='true', blank='true', )
+    dt_saida = models.DateField('Data Programada', null='true', blank='true', )
+    hr_grade = models.TimeField('Horário Programado', null='true', blank='true',)
     ds_placa = models.CharField('Placa do veículo', max_length=8, null='true', blank='true', )
     ds_transp = models.CharField('Nome da transportadora', max_length=30, null='true', blank='true', )
     nr_lacre = models.CharField('Número do lacre', max_length=10, null='true', blank='true', )
@@ -108,13 +107,13 @@ class Carregamento(OtifModel):
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, default= NAO)
-    multa = models.ForeignKey(MultaCarregamento, verbose_name='Multa', null='true', blank='true')
 
     def __unicode__(self):
         return '' or ''.join([self.cd_estab, self.cliente.nm_ab_cli, self.nr_nota_fis])
 
     def set_chegada(self):
         self.dt_hr_chegada=datetime.datetime.now()
+        self.dt_saida = datetime.datetime.now()
         self.ds_status_cheg=self.get_status_cheg()
         self.save()
 
@@ -135,9 +134,11 @@ class Carregamento(OtifModel):
         """Calculado(Se Hr de chegada > (data e Hr Grade - Limite carga da tabela ARZ_LIMITE_CLIENTE) então "Atrasado"
         senão "No Horário")"""
         # TODO: Se não está definido horas limite para o carregamento / liberação, considerar =0. Outra regra?
-        dt_maxima = (
-            datetime.datetime.combine(self.dt_saida, datetime.time(self.grade.hr_grade,0,0)) - datetime.timedelta(
-                0, 3600* (self.cliente.hr_lim_carga or 0),0))
+        dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
+        # dt_maxima = dt_previsao+datetime.timedelta()
+        # datetime.timedelta( 0, 3600* (self.cliente.hr_lim_carga or datetime.time(0,0,0)).hour,0)
+        print (self.grade.hr_grade, dt_previsao)
+        #print (dt_maxima)
         if self.dt_hr_chegada > dt_maxima:
             return "Atrasado"
         else:
@@ -147,8 +148,8 @@ class Carregamento(OtifModel):
         """Calculado(Se Hr de liberação > (data e Hr Grade + Limite liberação da tabela ARZ_LIMITE_CLIENTE) então
         "Atrasado" senão "No Horário")"""
         dt_maxima = (
-            datetime.combine(self.dt_saida, datetime.time(self.grade.hr_grade,0,0)) + datetime.timedelta(
-                0, 3600* (self.cliente.hr_lim_lib or 0),0))
+            datetime.combine(self.dt_saida, datetime.time(self.hr_grade.hr_grade,0,0)) + datetime.timedelta(
+                0, 3600* (self.cliente.hr_lim_lib or datetime.time(0,0,0)).hour,0))
         if self.dt_hr_liberacao > dt_maxima:
             return "Atrasado"
         else:
@@ -170,8 +171,8 @@ class Item(OtifModel):
     qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
     id_motivo = models.IntegerField('Motivo', null='true', blank='true', )
     qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
-    multa = models.ForeignKey(MultaItem, verbose_name='Multa', null='true', blank='true')
     carregamento = models.ForeignKey(Carregamento)
+
 
     def __unicode__(self):
         return self.cd_produto or ''

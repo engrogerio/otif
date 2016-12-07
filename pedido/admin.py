@@ -1,37 +1,62 @@
 # -*- encoding: utf-8 -*-
 
 from django.contrib import admin
+from django.forms import TextInput
+
 from pedido.models import Carregamento, Item
 from grade.models import Grade
-from cliente.models import Cliente
 from django import forms
-from django.db.models import Func
+from multa.models import MultaCarregamento, MultaItem
 from sgo.admin import SgpModelAdmin, SGPTabularInlineAdmin
-
-# Register your models here.
+import datetime
 
 
 class PedidoCarregamentoAdminForm(forms.ModelForm):
     class Meta:
         model = Carregamento
         fields = "__all__"
+        widgets = {
+            'hr_grade': TextInput(attrs={'size': 10}),
+        }
 
-    def __init__(self, *args, **kwds):
-        super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwds)
-        #cli=self.instance.cliente
-        if self.instance.grade:
-            grade_queryset = Grade.objects.order_by('hr_grade')
+    grade = forms.ModelChoiceField(label='Hora da Grade do Cliente',queryset=Grade.objects.all(), required=False,)
+    grade_hr = forms.TimeField(input_formats=forms.CharField(),required=False,)
+
+    def __init__(self, *args, **kwargs):
+        super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwargs)
+        self.fields['hr_grade'].widget.attrs['readonly'] = True
         try:
-            self.fields['grade'].queryset = grade_queryset
+            dt_semana = self.instance.dt_saida.weekday()
         except:
+            dt_semana = -1
+        cliente = self.instance.cliente_id
+        grade_queryset = Grade.objects.filter(dt_semana=dt_semana).filter(cliente_id=cliente).order_by('hr_grade')
+        self.fields['grade'].queryset = grade_queryset
+
+    def save(self,commit=True):
+        instance = super(PedidoCarregamentoAdminForm, self).save(commit=False)
+        # salva a hora do combo da grade no carregamento
+        try:
+            hora=self.cleaned_data['grade'].hr_grade
+            instance.hr_grade= hora
+        except:
+            # se não selecionar horário de grade algum, o horário do carregamento continua como está
             pass
+        if commit:
+            instance.save()
+        return instance
 
 
 class ItemInline(SGPTabularInlineAdmin):
     model = Item
     extra = 0
-    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta', 'qt_carregada', 'qt_pallet', 'detalhe']
-    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'detalhe', 'ds_ord_compra', 'qt_carregada']
+    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
+              'qt_carregada', 'qt_pallet', ]
+    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'ds_ord_compra',
+                       'qt_carregada']
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def is_readonly(self):
         return False
@@ -41,7 +66,6 @@ class ItemInline(SGPTabularInlineAdmin):
             return '<a href="/multa/multa_item/add/">Adicionar detalhes</a>'
         else:
             return '<a href="/multa/multa_item/'+str(obj.multa)+'/"">Ver/editar detalhes</a>'
-
     detalhe.allow_tags = True
 
 
@@ -49,9 +73,9 @@ class ItemInline_ReadOnly(SGPTabularInlineAdmin):
     model = Item
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
-              'qt_carregada', 'qt_pallet', 'detalhe']
-    readonly_fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
-              'qt_carregada', 'qt_pallet', 'detalhe']
+              'qt_carregada', 'qt_pallet',]
+    readonly_fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha',
+                       'qt_falta', 'qt_carregada', 'qt_pallet', ]
 
     def is_readonly(self):
         return True
@@ -120,27 +144,25 @@ class PedidoCarregamentoAdmin(SgpModelAdmin):
 
     actions=[set_chegada, set_inicio, set_fim, set_libera]
 
-    def related_cliente_grade(self, obj):
-        try:
-            return '%s' % obj.grade
-        except AttributeError:
-            return None
-
     inlines = [ItemInline_ReadOnly, ItemInline, ]
     verbose_name = ('Pedido')
-    list_display = ('nr_nota_fis','dt_saida', 'grade', 'cliente', 'cd_estab', 'ds_transp','ds_status_carrega' )
-    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'cd_estab', 'ds_transp', )
+    list_display = ('nr_nota_fis','dt_saida', 'hr_grade', 'cliente', 'cd_estab', 'ds_transp','ds_status_carrega' )
+    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'cd_estab', 'ds_transp',) #'hr_grade',)
+
     fieldsets = (
         (None, {'fields':(
-                          # ('dt_atlz', 'usr_atlz'),
-                          ('cd_estab','cliente','dt_saida','grade' ),
+                          ('cd_estab','cliente','dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
-                        ('ds_status_carrega','ds_status_cheg','ds_status_lib'))
+                        ('ds_status_carrega','ds_status_cheg','ds_status_lib', 'id_no_show'))
                 }),
         ('Acompanhamento do Carregamento',{
             'classes':('collapse',),
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
+    #     # ('Multas', {
+    #     #     'classes': ('collapse',),
+    #     #     'fields': (('vl_multa', 'vl_base_multa', 'vl_fixo',))
+    #     # })
     )
     #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
     list_filter = ('cd_estab','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]

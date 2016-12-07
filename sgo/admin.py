@@ -30,11 +30,11 @@ class SgpModelAdmin(admin.ModelAdmin):
     list_max_show_all = 5000
 
     def change_view(self, request, object_id, form_url='',extra_context=None):
-
         ct = ContentType.objects.get_for_model(self.model)
         if not request.user.is_superuser and request.user.has_perm('%s.view_%s' % (ct.app_label, ct.model)):
             extra_context = extra_context or {}
             extra_context['readonly'] = True
+
         return super(SgpModelAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def has_change_permission(self, request, obj=None):

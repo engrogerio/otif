@@ -25,7 +25,7 @@ class ClienteAdmin(admin.ModelAdmin):
 
     )
     list_filter = ('nm_ab_cli',)
-    search_fields = ['nm_ab_cli','nr_pedido' ,]
+    search_fields = ['nm_ab_cli',]
 
 
 admin.site.register(Cliente, ClienteAdmin)

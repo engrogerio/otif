@@ -14,16 +14,14 @@ vl.multa = Calculado (Se "id no show" = S então (("Valor base multa" * 0,05)+"V
 Multa.item
 vl.multa = Calculado (Falta * Valor base multa)
 
-cadastro de Tipos de multa
+6- cadastro de Tipos de multa
 
-
-6- Criar campos de Obs por linha do pedido
 
 7- Campo de quantidade carregada deve ser automatico read only =qtd embalagens-qtd falta
 
 8- corrigir bug do view permission -OK
 
-9- Limite de horas do cliente - alterar para campos hora e minuto
+9- Limite de horas do cliente - alterar para campos hora e minuto (?)
 
 10- Fazer change list dos Pedidos com os nomes:
 Fill Rate: - Somente mostrar registros onde a falta <> 0 e

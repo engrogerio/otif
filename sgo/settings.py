@@ -84,7 +84,7 @@ INSTALLED_APPS = (
     'cliente',
     'grade',
     'multa',
-
+    'falta',
     # 'produto',
     # 'transportadora',
     # 'estabelecimento',

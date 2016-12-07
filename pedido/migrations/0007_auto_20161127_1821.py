@@ -32,14 +32,4 @@ class Migration(migrations.Migration):
             model_name='item',
             name='vl_multa',
         ),
-        migrations.AddField(
-            model_name='carregamento',
-            name='multa',
-            field=models.ForeignKey(verbose_name=b'Multa', blank=b'true', to='multa.Carregamento', null=b'true'),
-        ),
-        migrations.AddField(
-            model_name='item',
-            name='multa',
-            field=models.ForeignKey(verbose_name=b'Multa', blank=b'true', to='multa.Item', null=b'true'),
-        ),
     ]
