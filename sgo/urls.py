@@ -20,7 +20,7 @@ urlpatterns = [
 
     url(r'^', include(admin.site.urls), name='menu'),
     url(r'^backup/$',views.run_backup, name='backup'),
-    url(r'^grade/', include('grade.urls')),
+    #url(r'^grade/', include('grade.urls')),
 ]
 
 

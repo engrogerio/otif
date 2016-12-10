@@ -1,11 +1,11 @@
 1- Finalizar form da Grade -OK
     1.1 -Repensar modelo
 
-2- ajustar dropdown da grade na form do pedido
+2- ajustar dropdown da grade na form do pedido -ok
 3- Mudar nome pedido_base/pedido_item para pedido_carregamento/pedido_item - OK
 4- Alterar cadastro_cliente e cadastro_grade para cliente_cliente e cadastro_cadastro -OK
 
-4- Arrumar template main
+4- Arrumar template main-ok
 
 5- Criar App Multa com classes Carregamento e Item
 Multa.carregamento
@@ -14,15 +14,22 @@ vl.multa = Calculado (Se "id no show" = S então (("Valor base multa" * 0,05)+"V
 Multa.item
 vl.multa = Calculado (Falta * Valor base multa)
 
-6- cadastro de Tipos de multa
+6- cadastro de Tipos de multa -ok
 
 
 7- Campo de quantidade carregada deve ser automatico read only =qtd embalagens-qtd falta
 
 8- corrigir bug do view permission -OK
 
-9- Limite de horas do cliente - alterar para campos hora e minuto (?)
+9- Limite de horas do cliente - alterar para campos hora e minuto -OK
 
 10- Fazer change list dos Pedidos com os nomes:
 Fill Rate: - Somente mostrar registros onde a falta <> 0 e
 No Show:  Permitir que seja consultado qualquer Pedido/Nota/Ordem de compra
+
+11- Máquina de estados: Pedido ->Programado ->Chegar ->Inicio ->Fim ->Liberação.
+Emitir erro se tentar iniciar carregamento, mas o caminhão está no status "Programado" por exemplo.
+
+12 - Fazer um dump do db para teste no servidor.
+https://coderwall.com/p/mvsoyg/django-dumpdata-and-loaddata
+

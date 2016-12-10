@@ -26,9 +26,9 @@ class Grade(OtifModel):
         (DOM, 'Domingo'),
     )
 
-    cliente = models.ForeignKey(Cliente, null='true', blank='true', to_field='nm_ab_cli', db_column='nm_ab_cli')
-    hr_grade = models.TimeField ('Horário', null='true', blank='true', )
-    dt_semana = models.IntegerField('Dia da semana',choices = DIA_SEMANA, null='true', blank='true',)
+    cliente = models.ForeignKey(Cliente, to_field='nm_ab_cli', db_column='nm_ab_cli')
+    hr_grade = models.TimeField ('Horário', )
+    dt_semana = models.IntegerField('Dia da semana',choices = DIA_SEMANA, default= SEG)
 
     def cria_grades_para_cliente(self,cliente):
         for semana in range(0,7):

@@ -2,13 +2,24 @@
 
 from django.contrib import admin
 from django.forms import TextInput
-
 from pedido.models import Carregamento, Item
 from grade.models import Grade
 from django import forms
 from multa.models import MultaCarregamento, MultaItem
 from sgo.admin import SgpModelAdmin, SGPTabularInlineAdmin
-import datetime
+
+
+
+class PedidoItemAdminForm(forms.ModelForm):
+    class Meta:
+        model = Item
+        fields = "__all__"
+
+
+class PedidoItemAdmin(SgpModelAdmin):
+
+    form = PedidoItemAdminForm
+    verbose_name = ('Itens do Pedido')
 
 
 class PedidoCarregamentoAdminForm(forms.ModelForm):
@@ -19,8 +30,7 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
             'hr_grade': TextInput(attrs={'size': 10}),
         }
 
-    grade = forms.ModelChoiceField(label='Hora da Grade do Cliente',queryset=Grade.objects.all(), required=False,)
-    grade_hr = forms.TimeField(input_formats=forms.CharField(),required=False,)
+    grade = forms.ModelChoiceField(label='Grade do Cliente',queryset=Grade.objects.all(), required=False,)
 
     def __init__(self, *args, **kwargs):
         super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwargs)
@@ -40,33 +50,35 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
             hora=self.cleaned_data['grade'].hr_grade
             instance.hr_grade= hora
         except:
-            # se não selecionar horário de grade algum, o horário do carregamento continua como está
+            # se não selecionar horário de grade , o horário do carregamento continua como está
             pass
         if commit:
             instance.save()
         return instance
 
+# São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
 
 class ItemInline(SGPTabularInlineAdmin):
     model = Item
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
-              'qt_carregada', 'qt_pallet', ]
+              'qt_carregada', 'qt_pallet',]
     readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'ds_ord_compra',
-                       'qt_carregada']
+                       'qt_carregada', ]
+
+    def multa(self, obj):
+        print(obj.multa)
+        if obj.multa:
+            return '<a href="/multa/multa_item/'+str(obj.multa)+'/">Ver/editar multa</a>'
+        else:
+            return '<a href="/multa/multa_item/add/">Adicionar multa</a>'
+        multa.allow_tags = True
 
     def has_delete_permission(self, request, obj=None):
         return False
 
     def is_readonly(self):
         return False
-
-    def detalhe(self, obj):
-        if obj.multa == None:
-            return '<a href="/multa/multa_item/add/">Adicionar detalhes</a>'
-        else:
-            return '<a href="/multa/multa_item/'+str(obj.multa)+'/"">Ver/editar detalhes</a>'
-    detalhe.allow_tags = True
 
 
 class ItemInline_ReadOnly(SGPTabularInlineAdmin):
@@ -167,5 +179,62 @@ class PedidoCarregamentoAdmin(SgpModelAdmin):
     #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
     list_filter = ('cd_estab','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
+
+
+class FillRate(Item):
+    class Meta:
+        proxy = True
+
+class FillRateAdmin(PedidoItemAdmin):
+    verbose_name = "Fill Rate"
+    list_display = (
+    'cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta')
+    list_filter = ()
+    readonly_fields = ()
+    inlines = ()
+    fieldsets = (
+        (None,{'fields':(
+            (('cd_estab', 'cliente'), ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido',),
+             ('cd_produto',), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
+             ('qt_falta','motivo', 'qt_carregada', 'qt_pallet',))),
+    }),)
+
+    def get_queryset(self, request):
+        qs = super(FillRateAdmin, self).get_queryset(request)
+        return qs.filter(qt_falta__gt=0)
+
+    def has_add_permission(self, request):
+        return False
+
+
+class NoShow(Carregamento):
+    class Meta:
+        proxy = True
+
+class NoShowAdmin(PedidoCarregamentoAdmin):
+    verbose_name = "No Show"
+    list_display = (
+        'cd_estab', 'cliente', 'nr_nota_fis', 'dt_hr_liberacao', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
+        'ds_status_lib', 'id_no_show', )
+    list_filter = ()
+    readonly_fields = ('cd_estab', 'cliente', 'dt_saida', 'ds_transp', 'id_no_show', )
+    inlines = ()
+    fieldsets = (
+        (None, {'fields': (
+            ('cd_estab', 'cliente'), ('dt_saida', 'hr_grade', ),
+            ('ds_transp', 'id_no_show'))
+        }),
+    )
+
+    def get_queryset(self, request):
+        qs = super(NoShowAdmin, self).get_queryset(request)
+        return qs.filter(id_no_show=Carregamento.SIM)
+
+    def has_add_permission(self, request):
+        return False
+
+
 admin.site.register(Carregamento, PedidoCarregamentoAdmin)
-admin.site.register(Item)
+admin.site.register(FillRate, FillRateAdmin)
+admin.site.register(NoShow, NoShowAdmin)
+#admin.site.register(Item, PedidoItemAdmin)

@@ -5,7 +5,7 @@ from sgo.models import OtifModel
 from grade.models import Grade
 from cliente.models import Cliente
 import datetime
-
+from falta.models import Motivo
 
 """
 Modelo de pedidos importados do Totvs ERP via arquivo txt.
@@ -133,12 +133,18 @@ class Carregamento(OtifModel):
     def get_status_cheg(self):
         """Calculado(Se Hr de chegada > (data e Hr Grade - Limite carga da tabela ARZ_LIMITE_CLIENTE) então "Atrasado"
         senão "No Horário")"""
-        # TODO: Se não está definido horas limite para o carregamento / liberação, considerar =0. Outra regra?
+        # se não está programada a data ou hora do pedido, é inserido automaticamente a data e hora atuais como plano
+        if not self.hr_grade:
+            self.hr_grade=datetime.time(datetime.datetime.now().time().hour,datetime.datetime.now().time().minute)
+        if not self.dt_saida:
+            self.dt_saida=datetime.datetime.now().date()
+
         dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
-        # dt_maxima = dt_previsao+datetime.timedelta()
-        # datetime.timedelta( 0, 3600* (self.cliente.hr_lim_carga or datetime.time(0,0,0)).hour,0)
-        print (self.grade.hr_grade, dt_previsao)
-        #print (dt_maxima)
+        # baseado no limite de carregamento do cliente, calcula a data/hora máxima para não ser considerado atraso
+        # Se não foi cadastrado limite para o carregamento, considera 0
+        delta=datetime.timedelta( hours=self.cliente.hr_lim_carga.hour or 0, minutes =self.cliente.hr_lim_carga.minute
+                                                                                      or 0)
+        dt_maxima = dt_previsao-delta
         if self.dt_hr_chegada > dt_maxima:
             return "Atrasado"
         else:
@@ -147,9 +153,17 @@ class Carregamento(OtifModel):
     def get_status_lib(self):
         """Calculado(Se Hr de liberação > (data e Hr Grade + Limite liberação da tabela ARZ_LIMITE_CLIENTE) então
         "Atrasado" senão "No Horário")"""
-        dt_maxima = (
-            datetime.combine(self.dt_saida, datetime.time(self.hr_grade.hr_grade,0,0)) + datetime.timedelta(
-                0, 3600* (self.cliente.hr_lim_lib or datetime.time(0,0,0)).hour,0))
+        # se não está programada a data ou hora do pedido, é inserido automaticamente a data e hora atuais como plano
+        if not self.hr_grade:
+            self.hr_grade = datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
+        if not self.dt_saida:
+            self.dt_saida = datetime.datetime.now().date()
+
+        dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
+        # baseado no limite do cliente, calcula a data/hora máxima para não ser considerado atraso
+        # Se não foi cadastrado limite para de liberação, considera 0
+        delta = datetime.timedelta(hours=self.cliente.hr_lim_lib.hour or 0, minutes=self.cliente.hr_lim_lib.minute or 0)
+        dt_maxima = dt_previsao + delta
         if self.dt_hr_liberacao > dt_maxima:
             return "Atrasado"
         else:
@@ -166,10 +180,10 @@ class Item(OtifModel):
     cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
     un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
     qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
-    qt_pilha = models.CharField('Quantidade da pilha', max_length=10, null='true', blank='true', )
+    qt_pilha = models.CharField('Pilhas', max_length=10, null='true', blank='true', )
     qt_carregada = models.IntegerField('Quantidade carregada', null='true', blank='true', )
     qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
-    id_motivo = models.IntegerField('Motivo', null='true', blank='true', )
+    motivo = models.ForeignKey(Motivo, null='true', blank='true', )
     qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
     carregamento = models.ForeignKey(Carregamento)
 
@@ -177,5 +191,6 @@ class Item(OtifModel):
     def __unicode__(self):
         return self.cd_produto or ''
 
-    def get_qt_carregada(self):
-        return self.qt_embalagem-self.qt_falta
+    def save(self):
+        self.qt_carregada = self.qt_embalagem-self.qt_falta
+        super(Item, self).save()

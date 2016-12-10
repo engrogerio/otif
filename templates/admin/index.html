@@ -51,7 +51,15 @@
                 {% if model.name  == "Items" %}
                    <i class="fa fa-user-plus fa-3x"></i>
                 {% endif %}
-
+                {% if model.name  == "Fill rates" %}
+                   <i class="fa fa-line-chart fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "No shows" %}
+                   <i class="fa fa-calendar-times-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Motivos" %}
+                   <i class="fa fa-list fa-3x"></i>
+                {% endif %}
             {{ model.name }}</a></th>
             {% else %}
                 <th scope="row">
@@ -65,10 +73,10 @@
                    <i class="fa fa-user fa-3x"></i>
                 {% endif %}
                 {% if model.name  == "Clientes" %}
-                   <i class="fa fa-truck fa-3x"></i>
+                   <i class="fa fa-industry fa-3x"></i>
                 {% endif %}
                 {% if model.name  == "Grades" %}
-                   <i class="fa fa-industry fa-3x" title=""></i>
+                   <i class="fa fa-calendar fa-3x" title=""></i>
                 {% endif %}
                 {% if model.name  == "Multa carregamentos" %}
                    <i class="fa fa-user-plus fa-3x"></i>
@@ -76,11 +84,14 @@
                 {% if model.name  == "Multa items" %}
                    <i class="fa fa-user-plus fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Carregamentos" %}
-                   <i class="fa fa-user-plus fa-3x"></i>
+                {% if model.name  == "Fill rates" %}
+                   <i class="fa fa-line-chart fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Items" %}
-                   <i class="fa fa-user-plus fa-3x"></i>
+                {% if model.name  == "No shows" %}
+                   <i class="fa fa-calendar-times-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Motivos" %}
+                   <i class="fa fa-list fa-3x"></i>
                 {% endif %}
                 {{ model.name }}
                 </th>
