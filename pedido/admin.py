@@ -97,6 +97,56 @@ class ItemInline_ReadOnly(SGPTabularInlineAdmin):
     detalhe.allow_tags = True
 
 
+class MultaItemInline(SGPTabularInlineAdmin):
+    model = MultaItem
+    extra = 0
+    fields = ['vl_base_multa', 'vl_multa',]
+
+    def is_readonly(self):
+        return False
+
+    def clean_vl_base_multa(self):
+        print("passei por aqui")
+        data = self.cleaned_data['vl_base_multa']
+        data = '${:,.2f}'.format(data)
+        return data
+
+
+class MultaItemInline_ReadOnly(SGPTabularInlineAdmin):
+    model = MultaItem
+    extra = 0
+    fields = ['vl_base_multa', 'vl_multa',]
+
+    def is_readonly(self):
+        return True
+
+
+
+
+class MultaCarregamentoInline(SGPTabularInlineAdmin):
+    model = MultaCarregamento
+    extra = 0
+    fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
+
+    def is_readonly(self):
+        return False
+
+
+class MultaCarregamentoInline_ReadOnly(SGPTabularInlineAdmin):
+    model = MultaCarregamento
+    extra = 0
+    fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
+
+    def is_readonly(self):
+        return True
+
+
+
+
+
+
+
+
 class EstabListFilter(admin.SimpleListFilter):
     title = ('estabelecimento')
     parameter_name = 'estabelecimento'
@@ -171,10 +221,6 @@ class PedidoCarregamentoAdmin(SgpModelAdmin):
             'classes':('collapse',),
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
-    #     # ('Multas', {
-    #     #     'classes': ('collapse',),
-    #     #     'fields': (('vl_multa', 'vl_base_multa', 'vl_fixo',))
-    #     # })
     )
     #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
     list_filter = ('cd_estab','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
@@ -187,11 +233,12 @@ class FillRate(Item):
 
 class FillRateAdmin(PedidoItemAdmin):
     verbose_name = "Fill Rate"
-    list_display = (
-    'cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta')
+    list_display = ('cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
+                    'motivo')
     list_filter = ()
-    readonly_fields = ()
-    inlines = ()
+    readonly_fields = ('cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
+                       'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada', 'qt_pallet')
+    inlines = [MultaItemInline, MultaItemInline_ReadOnly]
     fieldsets = (
         (None,{'fields':(
             (('cd_estab', 'cliente'), ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido',),
@@ -214,11 +261,11 @@ class NoShow(Carregamento):
 class NoShowAdmin(PedidoCarregamentoAdmin):
     verbose_name = "No Show"
     list_display = (
-        'cd_estab', 'cliente', 'nr_nota_fis', 'dt_hr_liberacao', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
+        'cd_estab', 'cliente', 'nr_nota_fis', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
         'ds_status_lib', 'id_no_show', )
     list_filter = ()
     readonly_fields = ('cd_estab', 'cliente', 'dt_saida', 'ds_transp', 'id_no_show', )
-    inlines = ()
+    inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
     fieldsets = (
         (None, {'fields': (
             ('cd_estab', 'cliente'), ('dt_saida', 'hr_grade', ),
@@ -232,6 +279,12 @@ class NoShowAdmin(PedidoCarregamentoAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    def clean_vl_base_multa(self):
+        print("passei por aqui")
+        data = self.cleaned_data['vl_base_multa']
+        data = '${:,.2f}'.format(data)
+        return data
 
 
 admin.site.register(Carregamento, PedidoCarregamentoAdmin)

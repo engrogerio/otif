@@ -115,6 +115,7 @@ class Carregamento(OtifModel):
         self.dt_hr_chegada=datetime.datetime.now()
         self.dt_saida = datetime.datetime.now()
         self.ds_status_cheg=self.get_status_cheg()
+        self.id_no_show = self.NAO
         self.save()
 
     def set_inicio(self):

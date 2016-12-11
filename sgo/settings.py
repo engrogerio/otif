@@ -85,9 +85,7 @@ INSTALLED_APPS = (
     'grade',
     'multa',
     'falta',
-    # 'produto',
-    # 'transportadora',
-    # 'estabelecimento',
+
 
 
 )

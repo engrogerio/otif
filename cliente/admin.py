@@ -17,7 +17,7 @@ class ClienteAdmin(admin.ModelAdmin):
     #exclude = ('item',)
     verbose_name = ("Cliente")
     list_display = ('nm_ab_cli', 'hr_lim_carga','hr_lim_lib', 'ds_classe_cli', )
-    readonly_fields = ('nm_ab_cli',)
+    readonly_fields = ()
     fieldsets = (
         (None, {'fields':(
                           (('nm_ab_cli','ds_classe_cli'),('hr_lim_carga','hr_lim_lib',)))
