@@ -105,6 +105,7 @@ class Carregamento(OtifModel):
     ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=PROGRAMADO, null='true', blank='true')
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
+    qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, default= NAO)
 
@@ -175,9 +176,9 @@ class Item(OtifModel):
     cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
-    nr_nota_fis = models.CharField('Número da Nota fiscal', max_length=32, null='true', blank='true', )
-    nr_pedido = models.CharField('Número do pedido do cliente', max_length=24, null='true', blank='true', )
-    ds_ord_compra = models.CharField('Número da ordem de compra', max_length=15, null='true', blank='true', )
+    nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
+    nr_pedido = models.CharField('Pedido do cliente', max_length=24, null='true', blank='true', )
+    ds_ord_compra = models.CharField('Ordem de compra', max_length=15, null='true', blank='true', )
     cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
     un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
     qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
@@ -185,7 +186,6 @@ class Item(OtifModel):
     qt_carregada = models.IntegerField('Quantidade carregada', null='true', blank='true', )
     qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
     motivo = models.ForeignKey(Motivo, null='true', blank='true', )
-    qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
     carregamento = models.ForeignKey(Carregamento)
 
 
@@ -193,5 +193,5 @@ class Item(OtifModel):
         return self.cd_produto or ''
 
     def save(self):
-        self.qt_carregada = self.qt_embalagem-self.qt_falta
+        self.qt_falta = self.qt_embalagem-self.qt_carregada
         super(Item, self).save()

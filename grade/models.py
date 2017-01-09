@@ -2,7 +2,9 @@
 from django.db import models
 from sgo.models import OtifModel
 from cliente.models import Cliente
+from business_unit.models import BusinessUnit
 import datetime
+
 # Create your models here.
 
 
@@ -25,15 +27,18 @@ class Grade(OtifModel):
         (SAB, 'Sábado'),
         (DOM, 'Domingo'),
     )
-
-    cliente = models.ForeignKey(Cliente, to_field='nm_ab_cli', db_column='nm_ab_cli')
+    business_unit = models.ForeignKey(BusinessUnit, verbose_name='Unidade')
+    cliente = models.ForeignKey(Cliente, to_field='nm_ab_cli',
+        db_column='nm_ab_cli')
     hr_grade = models.TimeField ('Horário', )
-    dt_semana = models.IntegerField('Dia da semana',choices = DIA_SEMANA, default= SEG)
+    dt_semana = models.IntegerField('Dia da semana',choices = DIA_SEMANA,
+        default= SEG)
 
     def cria_grades_para_cliente(self,cliente):
         for semana in range(0,7):
             for hora in range(0,24):
-                grade=Grade.objects.create(cliente=cliente, hr_grade=hora, dt_semana=semana, is_disponivel=True)
+                grade=Grade.objects.create(cliente=cliente, hr_grade=hora,
+                    dt_semana=semana, is_disponivel=True)
                 grade.save()
 
     def __unicode__(self):

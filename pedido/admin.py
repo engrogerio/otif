@@ -62,9 +62,12 @@ class ItemInline(SGPTabularInlineAdmin):
     model = Item
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
-              'qt_carregada', 'qt_pallet',]
+              'qt_carregada',]
     readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'ds_ord_compra',
-                       'qt_carregada', ]
+                       'qt_falta', ]
+
+    def has_add_permission(self, request):
+        return False
 
     def multa(self, obj):
         print(obj.multa)
@@ -85,9 +88,9 @@ class ItemInline_ReadOnly(SGPTabularInlineAdmin):
     model = Item
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
-              'qt_carregada', 'qt_pallet',]
+              'qt_carregada',]
     readonly_fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha',
-                       'qt_falta', 'qt_carregada', 'qt_pallet', ]
+                       'qt_falta', 'qt_carregada', ]
 
     def is_readonly(self):
         return True
@@ -156,6 +159,9 @@ class EstabListFilter(admin.SimpleListFilter):
 class PedidoCarregamentoAdmin(SgpModelAdmin):
     form = PedidoCarregamentoAdminForm
 
+    def has_add_permission(self, request):
+        return False
+
     def set_chegada(self, request, queryset):
         # Para cada carregamento selecionado, seta a hora de chegada do caminhão
         for c in queryset:
@@ -215,7 +221,9 @@ class PedidoCarregamentoAdmin(SgpModelAdmin):
         (None, {'fields':(
                           ('cd_estab','cliente','dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
-                        ('ds_status_carrega','ds_status_cheg','ds_status_lib', 'id_no_show'))
+                        ('ds_status_carrega','ds_status_cheg','ds_status_lib', 'id_no_show'),
+                        ('ds_obs_carga'),
+                        ('qt_pallet'))
                 }),
         ('Acompanhamento do Carregamento',{
             'classes':('collapse',),
@@ -237,7 +245,7 @@ class FillRateAdmin(PedidoItemAdmin):
                     'motivo')
     list_filter = ()
     readonly_fields = ('cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
-                       'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada', 'qt_pallet')
+                       'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada',)
     inlines = [MultaItemInline, MultaItemInline_ReadOnly]
     fieldsets = (
         (None,{'fields':(

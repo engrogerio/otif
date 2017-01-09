@@ -12,17 +12,20 @@ from django import forms
 # which acts a bit like a singleton
 class User_BusinessUnitInline(admin.StackedInline):
     model = User_BusinessUnit
-    can_delete = False
-    verbose_name_plural = 'Unidade de Negócios do Usuário'
+    extra = 0
+    can_delete = True
+    verbose_name_plural = 'Unidades de Negócios do Usuário'
+
 
 # Define a new User admin
 class MyUserAdmin(UserAdmin):
-    inlines = (User_BusinessUnitInline, )
+    inlines = [User_BusinessUnitInline, ]
 
     def __init__(self, *args, **kwargs):
         super(MyUserAdmin,self).__init__(*args, **kwargs)
-        MyUserAdmin.list_display =['username','email','first_name','last_name','user_business_unit']
-        #MyUserAdmin.list_filter+=('user_business_unit',)
+        MyUserAdmin.list_display =['username','email','first_name','last_name',]
+            # 'user_business_unit']
+        # MyUserAdmin.list_filter+=('user_business_unit',)
 #________________________________________________________________________________________
 
 class UserBusinessUnitAdminForm(forms.ModelForm):
@@ -34,10 +37,10 @@ class UserBusinessUnitAdmin(admin.ModelAdmin):
     form = UserBusinessUnitAdminForm
     fieldsets = (
         (None, {
-            'fields':(('business_unit'),('user',),),
+            'fields':(('user',),),
         }),
     )
-    list_display = ('user','business_unit',)
+    list_display = ('user',)
 #_________________________________________________________________________________________
 
 

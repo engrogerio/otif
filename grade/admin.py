@@ -26,7 +26,7 @@ class GradeAdmin(admin.ModelAdmin):
 
     form = GradeAdminForm
     verbose_name = ("Grade")
-    list_display = ('cliente', 'dt_semana', 'hr_grade',)
+    list_display = ('business_unit','cliente', 'dt_semana', 'hr_grade',)
     ordering = ('hr_grade',)
     list_filter = ('cliente', 'dt_semana')
 

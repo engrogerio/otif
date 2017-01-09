@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 
 
 class BusinessUnit(models.Model):
-    unit = models.CharField('Unidade de Negócios', max_length =100,)
+    cd_unit = models.CharField('Código da Unidade', max_length=5)
+    unit = models.CharField('Unidade de Negócios', max_length=100,)
 
     def __unicode__(self):
         return self.unit or u''
@@ -16,17 +17,22 @@ class BusinessUnit(models.Model):
         default_permissions = ('add', 'change', 'delete', 'view')
 
 class BusinessUnitSpecificModel(models.Model):
-    #All business unit specific models should extend this class instead of models.Model directly.
+    #All business unit specific models should extend this class instead of
+    #models.Model directly.
     business_unit=models.ForeignKey(BusinessUnit, null='true', blank='true',)
 
     class Meta:
         abstract = True
 
-class User_BusinessUnit(BusinessUnitSpecificModel):
-    user = models.OneToOneField(User, verbose_name='Usuário', related_name='user_business_unit')
+class User_BusinessUnit(models.Model):
+
+    unit = models.ForeignKey(BusinessUnit, verbose_name='Unidade',
+        related_name='unit_business_unit')
+    user = models.ForeignKey(User, verbose_name='Usuário',
+        related_name='user_business_unit')
 
     def __unicode__(self):
-        return self.business_unit.unit or u''
+        return self.user.username or u''
 
     class Meta():
         verbose_name = u'Unidade de Negócio do Usuário'
