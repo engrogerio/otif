@@ -6,6 +6,7 @@ from grade.models import Grade
 from cliente.models import Cliente
 import datetime
 from falta.models import Motivo
+from business_unit.models import BusinessUnitSpecificModel
 
 """
 Modelo de pedidos importados do Totvs ERP via arquivo txt.
@@ -21,7 +22,7 @@ Aplicação: Otif
 Aplicação: Pedido
 
     Modelo: Carregamento
-        cd_estab            Código do estabelecimento (JDF, STO, JAG ou OSA)
+        business_unit       Código do estabelecimento (JDF, STO, JAG ou OSA)
         nm_ab_cliente       Código do cliente
         nr_nota_fis         Número da Nota fiscal
         nr_pedido           Número do pedido do cliente
@@ -48,7 +49,7 @@ Aplicação: Pedido
                             multa" * 0,05)+"vl_fixo") senão, 0)
 
     Modelo: Item
-        cd_estab            Código do estabelecimento (JDF, STO, JAG ou OSA)
+        business_unit       Código do estabelecimento (JDF, STO, JAG ou OSA)
         nm_ab_cliente       Código do cliente
         nr_nota_fis         Número da Nota fiscal
         dt_saida            Data de saída do pedido
@@ -68,7 +69,7 @@ Aplicação: Pedido
 
 
 
-class Carregamento(OtifModel):
+class Carregamento(BusinessUnitSpecificModel):
 
     PROGRAMADO = 0
     NA_PLANTA = 1
@@ -89,7 +90,7 @@ class Carregamento(OtifModel):
         (SIM,'S'),
         (NAO,'N')
     )
-    cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
+    # business_unit = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
     nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
@@ -110,7 +111,7 @@ class Carregamento(OtifModel):
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, default= NAO)
 
     def __unicode__(self):
-        return '' or ''.join([self.cd_estab, self.cliente.nm_ab_cli, self.nr_nota_fis])
+        return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
 
     def set_chegada(self):
         self.dt_hr_chegada=datetime.datetime.now()
@@ -172,14 +173,15 @@ class Carregamento(OtifModel):
             return "No Horário"
 
 
-class Item(OtifModel):
-    cd_estab = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
+class Item(BusinessUnitSpecificModel):
+    # business_unit = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
     nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
     nr_pedido = models.CharField('Pedido do cliente', max_length=24, null='true', blank='true', )
     ds_ord_compra = models.CharField('Ordem de compra', max_length=15, null='true', blank='true', )
     cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
+    ds_produto = models.CharField('Descrição do produto', max_length=200, null='true', blank='true')
     un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
     qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
     qt_pilha = models.CharField('Pilhas', max_length=10, null='true', blank='true', )
@@ -190,7 +192,7 @@ class Item(OtifModel):
 
 
     def __unicode__(self):
-        return self.cd_produto or ''
+        return self.nr_pedido or ''
 
     def save(self):
         self.qt_falta = self.qt_embalagem-self.qt_carregada

@@ -6,23 +6,22 @@ from pedido.models import Carregamento, Item
 from grade.models import Grade
 from django import forms
 from multa.models import MultaCarregamento, MultaItem
-from sgo.admin import SgpModelAdmin, SGPTabularInlineAdmin
+from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin, SgoFormAdmin
 
 
-
-class PedidoItemAdminForm(forms.ModelForm):
+class PedidoItemAdminForm(SgoFormAdmin):
     class Meta:
         model = Item
         fields = "__all__"
 
 
-class PedidoItemAdmin(SgpModelAdmin):
+class PedidoItemAdmin(SgoModelAdmin):
 
     form = PedidoItemAdminForm
     verbose_name = ('Itens do Pedido')
 
 
-class PedidoCarregamentoAdminForm(forms.ModelForm):
+class PedidoCarregamentoAdminForm(SgoFormAdmin):
     class Meta:
         model = Carregamento
         fields = "__all__"
@@ -40,6 +39,7 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         except:
             dt_semana = -1
         cliente = self.instance.cliente_id
+        # TODO:Falta o filtro filter(business_unit__unit=self.unit_name)
         grade_queryset = Grade.objects.filter(dt_semana=dt_semana).filter(cliente_id=cliente).order_by('hr_grade')
         self.fields['grade'].queryset = grade_queryset
 
@@ -58,11 +58,11 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
 
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
 
-class ItemInline(SGPTabularInlineAdmin):
+class ItemInline(SgoTabularInlineAdmin):
     model = Item
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
-              'qt_carregada',]
+              'qt_carregada', 'motivo']
     readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'ds_ord_compra',
                        'qt_falta', ]
 
@@ -84,7 +84,7 @@ class ItemInline(SGPTabularInlineAdmin):
         return False
 
 
-class ItemInline_ReadOnly(SGPTabularInlineAdmin):
+class ItemInline_ReadOnly(SgoTabularInlineAdmin):
     model = Item
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
@@ -100,7 +100,7 @@ class ItemInline_ReadOnly(SGPTabularInlineAdmin):
     detalhe.allow_tags = True
 
 
-class MultaItemInline(SGPTabularInlineAdmin):
+class MultaItemInline(SgoTabularInlineAdmin):
     model = MultaItem
     extra = 0
     fields = ['vl_base_multa', 'vl_multa',]
@@ -109,13 +109,12 @@ class MultaItemInline(SGPTabularInlineAdmin):
         return False
 
     def clean_vl_base_multa(self):
-        print("passei por aqui")
         data = self.cleaned_data['vl_base_multa']
         data = '${:,.2f}'.format(data)
         return data
 
 
-class MultaItemInline_ReadOnly(SGPTabularInlineAdmin):
+class MultaItemInline_ReadOnly(SgoTabularInlineAdmin):
     model = MultaItem
     extra = 0
     fields = ['vl_base_multa', 'vl_multa',]
@@ -123,10 +122,7 @@ class MultaItemInline_ReadOnly(SGPTabularInlineAdmin):
     def is_readonly(self):
         return True
 
-
-
-
-class MultaCarregamentoInline(SGPTabularInlineAdmin):
+class MultaCarregamentoInline(SgoTabularInlineAdmin):
     model = MultaCarregamento
     extra = 0
     fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
@@ -135,7 +131,7 @@ class MultaCarregamentoInline(SGPTabularInlineAdmin):
         return False
 
 
-class MultaCarregamentoInline_ReadOnly(SGPTabularInlineAdmin):
+class MultaCarregamentoInline_ReadOnly(SgoTabularInlineAdmin):
     model = MultaCarregamento
     extra = 0
     fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
@@ -144,19 +140,13 @@ class MultaCarregamentoInline_ReadOnly(SGPTabularInlineAdmin):
         return True
 
 
-
-
-
-
-
-
 class EstabListFilter(admin.SimpleListFilter):
     title = ('estabelecimento')
     parameter_name = 'estabelecimento'
     default_value = None
 
 
-class PedidoCarregamentoAdmin(SgpModelAdmin):
+class PedidoCarregamentoAdmin(SgoModelAdmin):
     form = PedidoCarregamentoAdminForm
 
     def has_add_permission(self, request):
@@ -214,12 +204,12 @@ class PedidoCarregamentoAdmin(SgpModelAdmin):
 
     inlines = [ItemInline_ReadOnly, ItemInline, ]
     verbose_name = ('Pedido')
-    list_display = ('nr_nota_fis','dt_saida', 'hr_grade', 'cliente', 'cd_estab', 'ds_transp','ds_status_carrega' )
-    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'cd_estab', 'ds_transp',) #'hr_grade',)
+    list_display = ('business_unit','nr_nota_fis','dt_saida', 'hr_grade', 'cliente', 'business_unit', 'ds_transp','ds_status_carrega' )
+    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit', 'ds_transp',) #'hr_grade',)
 
     fieldsets = (
         (None, {'fields':(
-                          ('cd_estab','cliente','dt_saida','hr_grade', 'grade'),
+                          ('business_unit','cliente','dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
                         ('ds_status_carrega','ds_status_cheg','ds_status_lib', 'id_no_show'),
                         ('ds_obs_carga'),
@@ -230,8 +220,8 @@ class PedidoCarregamentoAdmin(SgpModelAdmin):
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
     )
-    #readonly_fields = ('cd_estab','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
-    list_filter = ('cd_estab','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
+    #readonly_fields = ('business_unit','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
+    list_filter = ('business_unit','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
 
 
@@ -241,22 +231,24 @@ class FillRate(Item):
 
 class FillRateAdmin(PedidoItemAdmin):
     verbose_name = "Fill Rate"
-    list_display = ('cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
-                    'motivo')
-    list_filter = ()
-    readonly_fields = ('cd_estab', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
-                       'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada',)
+    list_display = ('business_unit', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
+                    'motivo',)
+
+    readonly_fields = ('business_unit', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
+                       'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada', 'ds_produto', )
     inlines = [MultaItemInline, MultaItemInline_ReadOnly]
     fieldsets = (
         (None,{'fields':(
-            (('cd_estab', 'cliente'), ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido',),
-             ('cd_produto',), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
-             ('qt_falta','motivo', 'qt_carregada', 'qt_pallet',))),
+            (('business_unit', 'cliente'), ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido',),
+             ('cd_produto','ds_produto'), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
+             ('qt_falta', 'qt_carregada',))),
     }),)
+    list_filter = ('business_unit', 'cliente__nm_ab_cli',)
+    search_fields = ['nr_nota_fis', 'nr_pedido', 'ds_ord_compra' ,]
 
     def get_queryset(self, request):
         qs = super(FillRateAdmin, self).get_queryset(request)
-        return qs.filter(qt_falta__gt=0)
+        return qs
 
     def has_add_permission(self, request):
         return False
@@ -269,14 +261,14 @@ class NoShow(Carregamento):
 class NoShowAdmin(PedidoCarregamentoAdmin):
     verbose_name = "No Show"
     list_display = (
-        'cd_estab', 'cliente', 'nr_nota_fis', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
+        'business_unit', 'cliente', 'nr_nota_fis', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
         'ds_status_lib', 'id_no_show', )
     list_filter = ()
-    readonly_fields = ('cd_estab', 'cliente', 'dt_saida', 'ds_transp', 'id_no_show', )
+    readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp', 'id_no_show', )
     inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
     fieldsets = (
         (None, {'fields': (
-            ('cd_estab', 'cliente'), ('dt_saida', 'hr_grade', ),
+            ('business_unit', 'cliente'), ('dt_saida', 'hr_grade', ),
             ('ds_transp', 'id_no_show'))
         }),
     )

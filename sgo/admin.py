@@ -4,7 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib import admin
 from django import forms
 
-class SGPTabularInlineAdmin(admin.TabularInline):
+
+class SgoTabularInlineAdmin(admin.TabularInline):
     """
     Editable Inlines must extends this class and implement a method: is_readonly that returns False
     Read Only Inlines must extends the Editable Inlines and overwrite is_readonly method to returns True and
@@ -25,7 +26,7 @@ class SGPTabularInlineAdmin(admin.TabularInline):
                     saida = False
         return saida
 
-class SgpModelAdmin(admin.ModelAdmin):
+class SgoModelAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_max_show_all = 5000
 
@@ -35,7 +36,7 @@ class SgpModelAdmin(admin.ModelAdmin):
             extra_context = extra_context or {}
             extra_context['readonly'] = True
 
-        return super(SgpModelAdmin, self).change_view(request, object_id, extra_context=extra_context)
+        return super(SgoModelAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def has_change_permission(self, request, obj=None):
         ct = ContentType.objects.get_for_model(self.model)
@@ -92,32 +93,34 @@ class SgpModelAdmin(admin.ModelAdmin):
     """
     def get_queryset(self, request):
         self.user = request.user
-        qs = super(SgpModelAdmin, self).get_queryset(request)
-        #if request.user.is_superuser:
+        qs = super(SgoModelAdmin, self).get_queryset(request)
+        # if request.user.is_superuser:
         #   return qs
         return qs
 
     def get_form(self, request, obj=None, **kwargs):
-        form = super(SgpModelAdmin, self).get_form(request, obj, **kwargs)
+        form = super(SgoModelAdmin, self).get_form(request, obj, **kwargs)
         form.user = request.user
         return form
 
-# class SgpFormAdmin(forms.ModelForm):
-#     """
-#         Bring to a form, an invisible business_unit foreign key widget with the unit name already, based on current user logged.
-#         All Forms specific for a business_unit must extend this form.
-#     """
-#
-#     def __init__(self, *args, **kwds):
-#         #Defines initial value for the business_unit
-#         initial = kwds.get('initial', {})
-#         initial['business_unit']=self.user.user_business_unit.business_unit
-#         kwds['initial']=initial
-#         super(SgpFormAdmin, self).__init__(*args, **kwds)
-#         #self.fields['business_unit'].widget.attrs['readonly'] = True
-#         #TODO:Admin users should be able to see and change the BusinessUnit of an entity?
-#         self.fields['business_unit'].widget = forms.HiddenInput()
-#         try:
-#             self.unit_name = self.user.user_business_unit.business_unit.unit
-#         except:
-#             self.unit_name ='' #TODO: Implementar erro quando não traz o nome da unidade
+class SgoFormAdmin(forms.ModelForm):
+    """
+        Bring to a form, an invisible business_unit foreign key widget with the
+        unit name already, based on current user logged.
+        All Forms specific for a business_unit must extend this form.
+    """
+
+    def __init__(self, *args, **kwds):
+        #Defines initial value for the business_unit
+        initial = kwds.get('initial', {})
+        initial['business_unit']=self.user.user_business_unit  #user_business_unit.business_unit
+        kwds['initial']=initial
+        super(SgoFormAdmin, self).__init__(*args, **kwds)
+        # self.fields['business_unit'].widget.attrs['readonly'] = True
+        # TODO:Admin users should be able to see and change the BusinessUnit of an entity?
+        print(self.fields)
+        # self.fields['business_unit'].widget = forms.HiddenInput()
+        try:
+            self.unit_name = self.user.user_business_unit.business_unit.unit
+        except:
+            self.unit_name ='' #TODO: Implementar erro quando não traz o nome da unidade
