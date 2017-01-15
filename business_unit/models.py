@@ -30,7 +30,7 @@ class User_BusinessUnit(models.Model):
     Business units that an specific user is able to see. This is defined on the
     form for User. One user may have many BusinessUnits
     """
-    unit = models.ForeignKey(BusinessUnit, verbose_name='Estabelecimento',
+    unit = models.ForeignKey(BusinessUnit, verbose_name='Cód. Estab.',
         related_name='unit_business_unit')
     user = models.ForeignKey(User, verbose_name='Usuário',
         related_name='user_business_unit')

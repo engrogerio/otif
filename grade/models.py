@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from django.db import models
-from sgo.models import OtifModel
+from business_unit.models import BusinessUnitSpecificModel
 from cliente.models import Cliente
 from business_unit.models import BusinessUnit
 import datetime
@@ -9,7 +9,7 @@ import datetime
 
 
 
-class Grade(OtifModel):
+class Grade(BusinessUnitSpecificModel):
     SEG = 0
     TER = 1
     QUA = 2
@@ -27,7 +27,7 @@ class Grade(OtifModel):
         (SAB, 'Sábado'),
         (DOM, 'Domingo'),
     )
-    business_unit = models.ForeignKey(BusinessUnit, verbose_name='Unidade')
+
     cliente = models.ForeignKey(Cliente, to_field='nm_ab_cli',
         db_column='nm_ab_cli')
     hr_grade = models.TimeField ('Horário', )

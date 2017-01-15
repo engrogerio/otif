@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django import forms
 from cliente.models import Cliente
+from sgo.admin import SgoModelAdmin
 # Register your models here.
 
 class ClienteAdminForm(forms.ModelForm):
@@ -10,7 +11,7 @@ class ClienteAdminForm(forms.ModelForm):
         fields = "__all__"
 
 
-class ClienteAdmin(admin.ModelAdmin):
+class ClienteAdmin(SgoModelAdmin):
     form = ClienteAdminForm
 
     #inlines = [GradeInline,]

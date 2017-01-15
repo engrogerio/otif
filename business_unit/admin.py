@@ -36,7 +36,6 @@ class MyUserAdmin(UserAdmin):
         # MyUserAdmin.list_filter+=('user_business_unit',)
 
 
-
 # Define a new User admin
 class MyEstabelecimentoUserAdmin(UserAdmin):
     inlines = [User_EstablecimentoInline, ]
@@ -82,9 +81,4 @@ class User_EstabelecimentoAdmin(admin.ModelAdmin):
 # Re-register UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
-#admin.site.register(User, MyEstabelecimentoUserAdmin)
-
 admin.site.register(BusinessUnit)
-admin.site.register(User_BusinessUnit, UserBusinessUnitAdmin)
-
-admin.site.register(User_Estabelecimento, User_EstabelecimentoAdmin)

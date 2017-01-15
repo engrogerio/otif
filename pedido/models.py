@@ -174,7 +174,6 @@ class Carregamento(BusinessUnitSpecificModel):
 
 
 class Item(BusinessUnitSpecificModel):
-    # business_unit = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
     nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
@@ -192,7 +191,7 @@ class Item(BusinessUnitSpecificModel):
 
 
     def __unicode__(self):
-        return self.nr_pedido or ''
+        return self.ds_produto or ''
 
     def save(self):
         self.qt_falta = self.qt_embalagem-self.qt_carregada

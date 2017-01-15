@@ -6,10 +6,10 @@ from pedido.models import Carregamento, Item
 from grade.models import Grade
 from django import forms
 from multa.models import MultaCarregamento, MultaItem
-from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin, SgoFormAdmin
+from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
 
 
-class PedidoItemAdminForm(SgoFormAdmin):
+class PedidoItemAdminForm(forms.ModelForm):
     class Meta:
         model = Item
         fields = "__all__"
@@ -21,7 +21,7 @@ class PedidoItemAdmin(SgoModelAdmin):
     verbose_name = ('Itens do Pedido')
 
 
-class PedidoCarregamentoAdminForm(SgoFormAdmin):
+class PedidoCarregamentoAdminForm(forms.ModelForm):
     class Meta:
         model = Carregamento
         fields = "__all__"
@@ -39,8 +39,8 @@ class PedidoCarregamentoAdminForm(SgoFormAdmin):
         except:
             dt_semana = -1
         cliente = self.instance.cliente_id
-        # TODO:Falta o filtro filter(business_unit__unit=self.unit_name)
-        grade_queryset = Grade.objects.filter(dt_semana=dt_semana).filter(cliente_id=cliente).order_by('hr_grade')
+        business_unit = self.instance.business_unit
+        grade_queryset = Grade.objects.filter(business_unit__unit=business_unit.unit).filter(dt_semana=dt_semana).filter(cliente_id=cliente).order_by('hr_grade')
         self.fields['grade'].queryset = grade_queryset
 
     def save(self,commit=True):
@@ -84,13 +84,9 @@ class ItemInline(SgoTabularInlineAdmin):
         return False
 
 
-class ItemInline_ReadOnly(SgoTabularInlineAdmin):
+class ItemInline_ReadOnly(ItemInline):
     model = Item
     extra = 0
-    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_falta',
-              'qt_carregada',]
-    readonly_fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha',
-                       'qt_falta', 'qt_carregada', ]
 
     def is_readonly(self):
         return True
@@ -211,7 +207,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         (None, {'fields':(
                           ('business_unit','cliente','dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
-                        ('ds_status_carrega','ds_status_cheg','ds_status_lib', 'id_no_show'),
+                        ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
                         ('ds_obs_carga'),
                         ('qt_pallet'))
                 }),
@@ -264,7 +260,7 @@ class NoShowAdmin(PedidoCarregamentoAdmin):
         'business_unit', 'cliente', 'nr_nota_fis', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
         'ds_status_lib', 'id_no_show', )
     list_filter = ()
-    readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp', 'id_no_show', )
+    readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp', )
     inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
     fieldsets = (
         (None, {'fields': (
@@ -281,7 +277,6 @@ class NoShowAdmin(PedidoCarregamentoAdmin):
         return False
 
     def clean_vl_base_multa(self):
-        print("passei por aqui")
         data = self.cleaned_data['vl_base_multa']
         data = '${:,.2f}'.format(data)
         return data
