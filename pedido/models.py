@@ -107,8 +107,8 @@ class Carregamento(BusinessUnitSpecificModel):
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
-    ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
-    id_no_show = models.IntegerField('No Show', choices= NO_SHOW, default= NAO)
+    ds_obs_carga = models.TextField('Obs', max_length=500, null='true', blank='true', )
+    id_no_show = models.IntegerField('No Show', choices= NO_SHOW, null='true', blank='true',)
 
     def __unicode__(self):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
@@ -172,6 +172,13 @@ class Carregamento(BusinessUnitSpecificModel):
         else:
             return "No Horário"
 
+        # TODO:
+        # def save(self):
+        #     """
+        #     Cria um popup com campos para preencher os números dos pallets para
+        #         cada pedido conforme qt_pallet.
+        #     """
+        #     super(Item, self).save()
 
 class Item(BusinessUnitSpecificModel):
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
@@ -196,3 +203,9 @@ class Item(BusinessUnitSpecificModel):
     def save(self):
         self.qt_falta = self.qt_embalagem-self.qt_carregada
         super(Item, self).save()
+
+class Pallet(models.Model):
+    carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')
+    nr_pallet = models.IntegerField('Nr. Pallet',  null='true', blank='true')
+    def __unicode__(self):
+        return self.nr_pallet
