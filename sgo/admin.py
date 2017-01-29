@@ -33,7 +33,7 @@ class SgoModelAdmin(admin.ModelAdmin):
     def get_actions(self, request):
         #Disable delete
         actions = super(SgoModelAdmin, self).get_actions(request)
-        del actions['delete_selected']
+        #del actions['delete_selected']
         return actions
 
     def has_delete_permission(self, request, obj=None):

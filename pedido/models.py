@@ -201,6 +201,7 @@ class Item(BusinessUnitSpecificModel):
         return self.ds_produto or ''
 
     def save(self):
+        print('passei aqui')
         self.qt_falta = self.qt_embalagem-self.qt_carregada
         super(Item, self).save()
 

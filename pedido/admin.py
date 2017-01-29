@@ -57,10 +57,38 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
             instance.save()
         return instance
 
+
+from django.forms.models import BaseInlineFormSet
+class ItemInlineFormSet(BaseInlineFormSet):
+    """
+    Se quantidade faltante>0 exige o preenchimento
+    do motivo
+    """
+    def clean(self):
+        for form in self.forms:
+            id = form['id'].value()
+            item = Item.objects.get(id=id)
+            embalagens = int(item.qt_embalagem)
+            carregadas = int(form['qt_carregada'].value())
+            falta = embalagens-carregadas
+            #print('carregadas',carregadas, ' - ', 'embalagens', embalagens, ' - ','falta', falta)
+            motivo = form['motivo'].value()
+            # print('motivo',motivo, ' - ', 'falta', falta, motivo=='' , falta>0)
+            # Se quantidade em falta for maior do que zero e não tiver
+            # nenhum motivo selecionado, mostra mensagem de erro.
+            if motivo=='' and falta > 0:
+                msg = forms.ValidationError("Escolha um motivo.")
+                form.add_error('motivo', msg)
+            else:
+                form.cleaned_data['motivo'] = ''
+        #super (ItemInlineFormSet, self).clean()
+        #return form.cleaned_data
+
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
 
 class ItemInline(SgoTabularInlineAdmin):
     model = Item
+    formset = ItemInlineFormSet
     extra = 0
     fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
               'qt_carregada', 'motivo']
@@ -76,6 +104,9 @@ class ItemInline(SgoTabularInlineAdmin):
     def is_readonly(self):
         return False
 
+    @property
+    def qtd_falta(self):
+        return self.instance.qt_embalagem-self.instance.qt_carregada
 
 class ItemInline_ReadOnly(ItemInline):
     model = Item
@@ -84,9 +115,9 @@ class ItemInline_ReadOnly(ItemInline):
     def is_readonly(self):
         return True
 
-    def detalhe(self, obj):
-        return '<a href="/multa/multaitem/add/">Ver detalhes</a>'
-    detalhe.allow_tags = True
+    # def detalhe(self, obj):
+    #     return '<a href="/multa/multaitem/add/">Ver detalhes</a>'
+    # detalhe.allow_tags = True
 
 
 class MultaItemInline(SgoTabularInlineAdmin):
@@ -129,6 +160,7 @@ class MultaCarregamentoInline_ReadOnly(SgoTabularInlineAdmin):
         return True
 
 
+# TODO: Make it work !
 class PalletsInline(SgoTabularInlineAdmin):
     model = Pallet
     extra = 0
@@ -146,11 +178,6 @@ class PalletsInline_ReadOnly(SgoTabularInlineAdmin):
     def is_readonly(self):
         return True
 
-
-class EstabListFilter(SimpleListFilter):
-    title = ('estabelecimento')
-    parameter_name = 'estabelecimento'
-    default_value = None
 
 class FillRateListFilter(SimpleListFilter):
     title = ('status')
@@ -175,13 +202,34 @@ class FillRateListFilter(SimpleListFilter):
         elif self.value() == None:
             return queryset.filter(item_multa__gt=0).distinct()
 
+class NoShowListFilter(SimpleListFilter):
+    title = ('status')
+    parameter_name = 'status'
 
-from django.contrib import messages
+    def lookups(self, request, model_admin):
+        return (('multados', ('Multados')),('todos', ('Todos')),)
+
+    def choices(self, cl):
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == lookup,
+                'query_string': cl.get_query_string({
+                    self.parameter_name: lookup,
+                }, []),
+                'display': title,
+            }
+
+    def queryset(self, request, queryset):
+        if self.value() == 'multados':
+            return queryset .filter(carregamento_multa__gt=0).distinct()
+        elif self.value() == None:
+            return queryset.filter(carregamento_multa__gt=0).distinct()
+
+
 class PedidoCarregamentoAdmin(SgoModelAdmin):
     form = PedidoCarregamentoAdminForm
 
     def save_model(self, request, obj, form, change):
-        #messages.add_message(request, messages.INFO, 'Another Messages.')
         obj.save()
 
     def has_add_permission(self, request):
@@ -240,7 +288,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     inlines = [ItemInline_ReadOnly, ItemInline, ]
     verbose_name = ('Pedido')
-    list_display = ('business_unit','nr_nota_fis','dt_saida', 'hr_grade', 'cliente', 'business_unit', 'ds_transp','ds_status_carrega' )
+    list_display = ('nr_nota_fis', 'business_unit','dt_saida', 'hr_grade', 'cliente', 'ds_transp','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit', 'ds_transp',) #'hr_grade',)
 
     fieldsets = (
@@ -305,11 +353,12 @@ class NoShow(Carregamento):
 
 
 class NoShowAdmin(PedidoCarregamentoAdmin):
+    actions = None
     verbose_name = "No Show"
-    list_display = (
+    list_display = ('nr_nota_fis',
         'business_unit', 'cliente', 'nr_nota_fis', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
-        'ds_status_lib', 'id_no_show', )
-    list_filter = ()
+        'ds_status_lib', 'total_multas', 'id_no_show', )
+    list_filter = ['business_unit', NoShowListFilter, 'cliente']
     readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp', )
     inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
     fieldsets = (
@@ -318,10 +367,15 @@ class NoShowAdmin(PedidoCarregamentoAdmin):
             ('ds_transp', 'id_no_show'))
         }),
     )
+    search_fields = ['nr_nota_fis',]
 
     def get_queryset(self, request):
         qs = super(NoShowAdmin, self).get_queryset(request)
-        return qs.filter(id_no_show__gt=0)
+        return qs
+
+    def total_multas(self, obj):
+        multas = [k.vl_multa for k in obj.carregamento_multa.all()]
+        return sum(multas)
 
     def has_add_permission(self, request):
         return False
