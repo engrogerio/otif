@@ -189,21 +189,19 @@ class Item(BusinessUnitSpecificModel):
     cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
     ds_produto = models.CharField('Descrição do produto', max_length=200, null='true', blank='true')
     un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
-    qt_embalagem = models.IntegerField('Quantidade de embalagens', null='true', blank='true', )
+    qt_embalagem = models.IntegerField('Quantidade de embalagens', default=0, )
     qt_pilha = models.CharField('Pilhas', max_length=10, null='true', blank='true', )
-    qt_carregada = models.IntegerField('Quantidade carregada', null='true', blank='true', )
-    qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
+    qt_carregada = models.IntegerField('Quantidade carregada', default=0, )
+    # qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
     motivo = models.ForeignKey(Motivo, null='true', blank='true', )
     carregamento = models.ForeignKey(Carregamento)
 
+    @property
+    def qt_falta(self):
+        return self.qt_embalagem - self.qt_carregada
 
     def __unicode__(self):
         return self.ds_produto or ''
-
-    def save(self):
-        print('passei aqui')
-        self.qt_falta = self.qt_embalagem-self.qt_carregada
-        super(Item, self).save()
 
 class Pallet(models.Model):
     carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')

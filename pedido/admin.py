@@ -76,7 +76,7 @@ class ItemInlineFormSet(BaseInlineFormSet):
             # print('motivo',motivo, ' - ', 'falta', falta, motivo=='' , falta>0)
             # Se quantidade em falta for maior do que zero e não tiver
             # nenhum motivo selecionado, mostra mensagem de erro.
-            if motivo=='' and falta > 0:
+            if motivo=='' and falta > 0 and carregadas>0:
                 msg = forms.ValidationError("Escolha um motivo.")
                 form.add_error('motivo', msg)
             else:
