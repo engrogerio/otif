@@ -145,8 +145,12 @@ class Carregamento(BusinessUnitSpecificModel):
         dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
         # baseado no limite de carregamento do cliente, calcula a data/hora máxima para não ser considerado atraso
         # Se não foi cadastrado limite para o carregamento, considera 0
-        delta=datetime.timedelta( hours=self.cliente.hr_lim_carga.hour or 0, minutes =self.cliente.hr_lim_carga.minute
-                                                                                      or 0)
+        try:
+            delta = datetime.timedelta( hours=self.cliente.limite.hr_lim_carga.hour
+                or 0, minutes =self.cliente.limite.hr_lim_carga.minute or 0)
+        except:
+            delta = datetime.timedelta(hours=0, minutes=0)
+
         dt_maxima = dt_previsao-delta
         if self.dt_hr_chegada > dt_maxima:
             return "Atrasado"
@@ -194,7 +198,7 @@ class Item(BusinessUnitSpecificModel):
     qt_carregada = models.IntegerField('Quantidade carregada', default=0, )
     # qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
     motivo = models.ForeignKey(Motivo, null='true', blank='true', )
-    carregamento = models.ForeignKey(Carregamento)
+    carregamento = models.ForeignKey(Carregamento, related_name='carregamento_items')
 
     @property
     def qt_falta(self):
@@ -208,3 +212,13 @@ class Pallet(models.Model):
     nr_pallet = models.IntegerField('Nr. Pallet',  null='true', blank='true')
     def __unicode__(self):
         return self.nr_pallet
+
+
+class FillRate(Item):
+    class Meta:
+        proxy = True
+
+
+class NoShow(Carregamento):
+    class Meta:
+        proxy = True

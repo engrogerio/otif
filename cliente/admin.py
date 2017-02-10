@@ -5,28 +5,27 @@ from cliente.models import Cliente
 from sgo.admin import SgoModelAdmin
 # Register your models here.
 
-class ClienteAdminForm(forms.ModelForm):
+class LimitePorClienteAdminForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = "__all__"
+        fields = ('nm_ab_cli', 'hr_lim_carga', 'hr_lim_lib',)
 
 
-class ClienteAdmin(SgoModelAdmin):
-    form = ClienteAdminForm
+class LimitePorClienteAdmin(SgoModelAdmin):
+    form = LimitePorClienteAdminForm
 
     #inlines = [GradeInline,]
     #exclude = ('item',)
-    verbose_name = ("Cliente")
-    list_display = ('nm_ab_cli', 'hr_lim_carga','hr_lim_lib', 'ds_classe_cli', )
-    readonly_fields = ()
+    verbose_name = ("Limites Atraso Cliente")
+    list_display = ('nm_ab_cli', 'hr_lim_carga','hr_lim_lib', ) #'cliente_limite', )
+    readonly_fields = ('nm_ab_cli',)
     fieldsets = (
         (None, {'fields':(
-                          (('nm_ab_cli','ds_classe_cli'),('hr_lim_carga','hr_lim_lib',)))
+                          ('nm_ab_cli',('hr_lim_carga','hr_lim_lib',)))
                 }),
-
     )
-    list_filter = ('nm_ab_cli',)
+    #list_filter = ('nm_ab_cli',)
     search_fields = ['nm_ab_cli',]
 
 
-admin.site.register(Cliente, ClienteAdmin)
+admin.site.register(Cliente, LimitePorClienteAdmin)

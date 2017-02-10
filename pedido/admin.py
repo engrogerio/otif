@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.forms import TextInput, Textarea
-from pedido.models import Carregamento, Item, Pallet
+from pedido.models import Carregamento, Item, Pallet, FillRate, NoShow
 from grade.models import Grade
 from django import forms
 from multa.models import MultaCarregamento, MultaItem
@@ -288,7 +288,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     inlines = [ItemInline_ReadOnly, ItemInline, ]
     verbose_name = ('Pedido')
-    list_display = ('nr_nota_fis', 'business_unit','dt_saida', 'hr_grade', 'cliente', 'ds_transp','ds_status_carrega' )
+    list_display = ('nr_nota_fis', 'business_unit','dt_saida', 'hr_grade', 'cliente', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit', 'ds_transp',) #'hr_grade',)
 
     fieldsets = (
@@ -312,14 +312,14 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
 
-class FillRate(Item):
-    class Meta:
-        proxy = True
+# class FillRate(Item):
+#     # class Meta:
+#     #     proxy = True
 
 
 class FillRateAdmin(PedidoItemAdmin):
     verbose_name = "Fill Rate"
-    list_display = ('nr_nota_fis', 'business_unit', 'cliente', 'cd_produto',  'qt_falta',
+    list_display = ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'business_unit', 'cliente', 'cd_produto',  'qt_falta',
                     'motivo','total_multas')
 
     readonly_fields = ('business_unit', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
@@ -331,9 +331,9 @@ class FillRateAdmin(PedidoItemAdmin):
              ('cd_produto','ds_produto'), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
              ('qt_falta', 'qt_carregada','motivo'))),
     }),)
-    list_filter = ['business_unit', FillRateListFilter, 'cliente']
+    list_filter = ['business_unit', FillRateListFilter, ]
 
-    search_fields = ['nr_nota_fis', 'nr_pedido', 'ds_ord_compra' ,]
+    search_fields = ['nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'cliente__nm_ab_cli']
 
     def total_multas(self, obj):
         multas = [k.vl_multa for k in obj.item_multa.all()]
@@ -347,18 +347,18 @@ class FillRateAdmin(PedidoItemAdmin):
         return False
 
 
-class NoShow(Carregamento):
-    class Meta:
-        proxy = True
+# class NoShow(Carregamento):
+#     # class Meta:
+#     #     proxy = True
 
 
 class NoShowAdmin(PedidoCarregamentoAdmin):
     actions = None
     verbose_name = "No Show"
     list_display = ('nr_nota_fis',
-        'business_unit', 'cliente', 'nr_nota_fis', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
+        'business_unit', 'cliente', 'nr_nota_fis',  'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
         'ds_status_lib', 'total_multas', 'id_no_show', )
-    list_filter = ['business_unit', NoShowListFilter, 'cliente']
+    list_filter = ['business_unit', NoShowListFilter,] # 'cliente']
     readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp', )
     inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
     fieldsets = (
@@ -367,7 +367,12 @@ class NoShowAdmin(PedidoCarregamentoAdmin):
             ('ds_transp', 'id_no_show'))
         }),
     )
-    search_fields = ['nr_nota_fis',]
+    search_fields = ['nr_nota_fis', 'cliente', 'carregamento_item__ds_ord_compra', 'carregamento_item__nr_pedido',]
+
+    def get_item_ord_compra(self, obj):
+        print (dir(obj.carregamento_items.get_queryset()))
+        return obj.carregamento_items.ds_ord_compra
+
 
     def get_queryset(self, request):
         qs = super(NoShowAdmin, self).get_queryset(request)

@@ -22,8 +22,8 @@ SERVER_URL = ''
 #SERVER_URL = '/sgo_teste'
 #SERVER_URL = '/sgo'
 
-TEMPLATE_DIRS = [ os.path.join(BASE_DIR, 'templates'),
-
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates'),
+                  os.path.join(BASE_DIR,'report/templates/report')
                 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -89,6 +89,7 @@ INSTALLED_APPS = (
 
 
 )
+
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -81,4 +81,4 @@ class User_EstabelecimentoAdmin(admin.ModelAdmin):
 # Re-register UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
-admin.site.register(BusinessUnit)
+# admin.site.register(BusinessUnit)
