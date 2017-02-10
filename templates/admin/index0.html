@@ -73,7 +73,52 @@
                    <i class="fa fa-list fa-3x"></i>
                 {% endif %}
             {{ model.name }}</a></th>
-            
+            {% else %}
+                <th scope="row">
+                {% if model.name  == "Entradas de log" %}
+                   <i class="fa fa-book fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Grupos" %}
+                   <i class="fa fa-users fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Usuários" %}
+                   <i class="fa fa-user fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio" %}
+                   <i class="fa fa-industry fa-3x" title=""></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio do Usuário" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio" %}
+                   <i class="fa fa-industry fa-3x" title=""></i>
+                {% endif %}
+                {% if model.name  == "Unidades de Negócio do Usuário" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Limites por Cliente" %}
+                   <i class="fa fa-hourglass-half fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Grades" %}
+                   <i class="fa fa-calendar fa-3x" title=""></i>
+                {% endif %}
+                {% if model.name  == "Multa carregamentos" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Multa items" %}
+                   <i class="fa fa-user-plus fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Fill rates" %}
+                   <i class="fa fa-line-chart fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "No shows" %}
+                   <i class="fa fa-calendar-times-o fa-3x"></i>
+                {% endif %}
+                {% if model.name  == "Motivos" %}
+                   <i class="fa fa-list fa-3x"></i>
+                {% endif %}
+                {{ model.name }}
+                </th>
             {% endif %}
 
             {% if model.add_url %}

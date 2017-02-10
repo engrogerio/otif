@@ -30,12 +30,6 @@ class SgoModelAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_max_show_all = 5000
 
-    def get_actions(self, request):
-        #Disable delete
-        actions = super(SgoModelAdmin, self).get_actions(request)
-        #del actions['delete_selected']
-        return actions
-
     def has_delete_permission(self, request, obj=None):
         #Disable delete
         return False

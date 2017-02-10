@@ -293,7 +293,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     fieldsets = (
         (None, {'fields':(
-                          ('business_unit','cliente','dt_saida','hr_grade', 'grade'),
+                        ('business_unit','cliente','dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
                         ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
                         ('ds_obs_carga','qt_pallet',),
