@@ -1,26 +1,13 @@
 # -*- encoding: utf-8 -*-
 
 from django.contrib import admin
-from django.contrib.admin import SimpleListFilter
 from django.forms import TextInput, Textarea
-from pedido.models import Carregamento, Item, Pallet, FillRate, NoShow
+from pedido.models import Carregamento, Item
 from grade.models import Grade
 from django import forms
-from multa.models import MultaCarregamento, MultaItem
 from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
 from django.db import models
-
-class PedidoItemAdminForm(forms.ModelForm):
-    class Meta:
-        model = Item
-        fields = "__all__"
-
-
-class PedidoItemAdmin(SgoModelAdmin):
-
-    form = PedidoItemAdminForm
-    verbose_name = ('Itens do Pedido')
-
+from django.forms.models import BaseInlineFormSet
 
 class PedidoCarregamentoAdminForm(forms.ModelForm):
     class Meta:
@@ -34,8 +21,9 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwargs)
-        self.fields['hr_grade'].widget.attrs['readonly'] = True
+
         try:
+            self.fields['hr_grade'].widget.attrs['readonly'] = True
             dt_semana = self.instance.dt_saida.weekday()
         except:
             dt_semana = -1
@@ -58,7 +46,7 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         return instance
 
 
-from django.forms.models import BaseInlineFormSet
+
 class ItemInlineFormSet(BaseInlineFormSet):
     """
     Se quantidade faltante>0 exige o preenchimento
@@ -86,6 +74,7 @@ class ItemInlineFormSet(BaseInlineFormSet):
 
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
 
+
 class ItemInline(SgoTabularInlineAdmin):
     model = Item
     formset = ItemInlineFormSet
@@ -108,126 +97,21 @@ class ItemInline(SgoTabularInlineAdmin):
     def qtd_falta(self):
         return self.instance.qt_embalagem-self.instance.qt_carregada
 
+
 class ItemInline_ReadOnly(ItemInline):
-    model = Item
-    extra = 0
+    readonly_fields = ['nr_nota_fis', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'ds_ord_compra',
+                       'qt_falta', 'qt_carregada', 'motivo']
 
     def is_readonly(self):
         return True
-
-    # def detalhe(self, obj):
-    #     return '<a href="/multa/multaitem/add/">Ver detalhes</a>'
-    # detalhe.allow_tags = True
-
-
-class MultaItemInline(SgoTabularInlineAdmin):
-    model = MultaItem
-    extra = 0
-    fields = ['vl_base_multa', 'vl_multa',]
-
-    def is_readonly(self):
-        return False
-
-    def clean_vl_base_multa(self):
-        data = self.cleaned_data['vl_base_multa']
-        data = '${:,.2f}'.format(data)
-        return data
-
-
-class MultaItemInline_ReadOnly(SgoTabularInlineAdmin):
-    model = MultaItem
-    extra = 0
-    fields = ['vl_base_multa', 'vl_multa',]
-
-    def is_readonly(self):
-        return True
-
-class MultaCarregamentoInline(SgoTabularInlineAdmin):
-    model = MultaCarregamento
-    extra = 0
-    fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
-
-    def is_readonly(self):
-        return False
-
-
-class MultaCarregamentoInline_ReadOnly(SgoTabularInlineAdmin):
-    model = MultaCarregamento
-    extra = 0
-    fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
-
-    def is_readonly(self):
-        return True
-
-
-# TODO: Make it work !
-class PalletsInline(SgoTabularInlineAdmin):
-    model = Pallet
-    extra = 0
-    fields = ['nr_pallet',]
-
-    def is_readonly(self):
-        return False
-
-
-class PalletsInline_ReadOnly(SgoTabularInlineAdmin):
-    model = Pallet
-    extra = 0
-    fields = ['nr_pallet',]
-
-    def is_readonly(self):
-        return True
-
-
-class FillRateListFilter(SimpleListFilter):
-    title = ('status')
-    parameter_name = 'status'
-
-    def lookups(self, request, model_admin):
-        return (('multados', ('Multados')),('todos', ('Todos')),)
-
-    def choices(self, cl):
-        for lookup, title in self.lookup_choices:
-            yield {
-                'selected': self.value() == lookup,
-                'query_string': cl.get_query_string({
-                    self.parameter_name: lookup,
-                }, []),
-                'display': title,
-            }
-
-    def queryset(self, request, queryset):
-        if self.value() == 'multados':
-            return queryset.filter(item_multa__gt=0).distinct()
-        elif self.value() == None:
-            return queryset.filter(item_multa__gt=0).distinct()
-
-class NoShowListFilter(SimpleListFilter):
-    title = ('status')
-    parameter_name = 'status'
-
-    def lookups(self, request, model_admin):
-        return (('multados', ('Multados')),('todos', ('Todos')),)
-
-    def choices(self, cl):
-        for lookup, title in self.lookup_choices:
-            yield {
-                'selected': self.value() == lookup,
-                'query_string': cl.get_query_string({
-                    self.parameter_name: lookup,
-                }, []),
-                'display': title,
-            }
-
-    def queryset(self, request, queryset):
-        if self.value() == 'multados':
-            return queryset .filter(carregamento_multa__gt=0).distinct()
-        elif self.value() == None:
-            return queryset.filter(carregamento_multa__gt=0).distinct()
 
 
 class PedidoCarregamentoAdmin(SgoModelAdmin):
     form = PedidoCarregamentoAdminForm
+
+    def is_proxy(self):
+        print (dir(self))
+        return True
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -238,13 +122,13 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     def set_chegada(self, request, queryset):
         # Para cada carregamento selecionado, seta a hora de chegada do caminhão
         for c in queryset:
-            c.set_chegada() #carregamento=c)
+            c.set_chegada()
         rows_updated = queryset.update(ds_status_carrega=Carregamento.NA_PLANTA,)
         if rows_updated == 1:
             message_bit = "1 carregamento foi"
         else:
             message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcados como caminhão na planta." % message_bit)
+        self.message_user(request, "%s marcado(s) como caminhão na planta." % message_bit)
     set_chegada.short_description='Sinalizar chegada do caminhão'
 
     def set_inicio(self, request, queryset):
@@ -256,7 +140,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             message_bit = "1 carregamento foi"
         else:
             message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcados como iniciado(s)." % message_bit)
+        self.message_user(request, "%s marcado(s) como iniciado(s)." % message_bit)
     set_inicio.short_description='Sinalizar início do carregamento'
 
     def set_fim(self, request, queryset):
@@ -268,7 +152,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             message_bit = "1 carregamento foi"
         else:
             message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcados como finalizado(s)." % message_bit)
+        self.message_user(request, "%s marcado(s) como finalizado(s)." % message_bit)
     set_fim.short_description='Sinalizar fim do carregamento'
 
     def set_libera(self, request, queryset):
@@ -280,13 +164,13 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             message_bit = "1 carregamento foi"
         else:
             message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcados como caminhão liberado." % message_bit)
+        self.message_user(request, "%s marcado(s) como caminhão liberado." % message_bit)
 
     set_libera.short_description='Sinalizar liberação do caminhão'
 
     actions=[set_chegada, set_inicio, set_fim, set_libera]
 
-    inlines = [ItemInline_ReadOnly, ItemInline, ]
+    inlines = [ ItemInline, ItemInline_ReadOnly, ]
     verbose_name = ('Pedido')
     list_display = ('nr_nota_fis', 'business_unit','dt_saida', 'hr_grade', 'cliente', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit', 'ds_transp',) #'hr_grade',)
@@ -297,7 +181,6 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                         ('ds_transp', 'ds_placa','nr_lacre'),
                         ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
                         ('ds_obs_carga','qt_pallet',),
-
                         )
                 }),
         ('Acompanhamento do Carregamento',{
@@ -312,86 +195,4 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
 
-# class FillRate(Item):
-#     # class Meta:
-#     #     proxy = True
-
-
-class FillRateAdmin(PedidoItemAdmin):
-    verbose_name = "Fill Rate"
-    list_display = ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'business_unit', 'cliente', 'cd_produto',  'qt_falta',
-                    'motivo','total_multas')
-
-    readonly_fields = ('business_unit', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
-                       'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada', 'ds_produto', 'motivo' )
-    inlines = [MultaItemInline, MultaItemInline_ReadOnly]
-    fieldsets = (
-        (None,{'fields':(
-            (('business_unit', 'cliente'), ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido',),
-             ('cd_produto','ds_produto'), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
-             ('qt_falta', 'qt_carregada','motivo'))),
-    }),)
-    list_filter = ['business_unit', FillRateListFilter, ]
-
-    search_fields = ['nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'cliente__nm_ab_cli']
-
-    def total_multas(self, obj):
-        multas = [k.vl_multa for k in obj.item_multa.all()]
-        return sum(multas)
-
-    def get_queryset(self, request):
-        qs = super(FillRateAdmin, self).get_queryset(request)
-        return qs
-
-    def has_add_permission(self, request):
-        return False
-
-
-# class NoShow(Carregamento):
-#     # class Meta:
-#     #     proxy = True
-
-
-class NoShowAdmin(PedidoCarregamentoAdmin):
-    actions = None
-    verbose_name = "No Show"
-    list_display = ('nr_nota_fis',
-        'business_unit', 'cliente', 'nr_nota_fis',  'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
-        'ds_status_lib', 'total_multas', 'id_no_show', )
-    list_filter = ['business_unit', NoShowListFilter,] # 'cliente']
-    readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp', )
-    inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
-    fieldsets = (
-        (None, {'fields': (
-            ('business_unit', 'cliente'), ('dt_saida', 'hr_grade', ),
-            ('ds_transp', 'id_no_show'))
-        }),
-    )
-    search_fields = ['nr_nota_fis', 'cliente', 'carregamento_item__ds_ord_compra', 'carregamento_item__nr_pedido',]
-
-    def get_item_ord_compra(self, obj):
-        print (dir(obj.carregamento_items.get_queryset()))
-        return obj.carregamento_items.ds_ord_compra
-
-
-    def get_queryset(self, request):
-        qs = super(NoShowAdmin, self).get_queryset(request)
-        return qs
-
-    def total_multas(self, obj):
-        multas = [k.vl_multa for k in obj.carregamento_multa.all()]
-        return sum(multas)
-
-    def has_add_permission(self, request):
-        return False
-
-    def clean_vl_base_multa(self):
-        data = self.cleaned_data['vl_base_multa']
-        data = '${:,.2f}'.format(data)
-        return data
-
-
 admin.site.register(Carregamento, PedidoCarregamentoAdmin)
-admin.site.register(FillRate, FillRateAdmin)
-admin.site.register(NoShow, NoShowAdmin)
-#admin.site.register(Item, PedidoItemAdmin)

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import sys
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import admin
-from django import forms
-
+from django.contrib.auth.models import Permission
 
 class SgoTabularInlineAdmin(admin.TabularInline):
     """
@@ -35,15 +34,16 @@ class SgoModelAdmin(admin.ModelAdmin):
         return False
 
     def change_view(self, request, object_id, form_url='',extra_context=None):
+
         ct = ContentType.objects.get_for_model(self.model)
         if not request.user.is_superuser and request.user.has_perm('%s.view_%s' % (ct.app_label, ct.model)):
             extra_context = extra_context or {}
             extra_context['readonly'] = True
-
         return super(SgoModelAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
+
     def has_change_permission(self, request, obj=None):
-        ct = ContentType.objects.get_for_model(self.model)
+        ct = ContentType.objects.get_for_model(self.model, False)
         saida = False
         if request.user.is_superuser:
             saida = True
@@ -58,7 +58,7 @@ class SgoModelAdmin(admin.ModelAdmin):
         return saida
 
     def get_readonly_fields(self, request, obj=None):
-        ct = ContentType.objects.get_for_model(self.model)
+        ct = ContentType.objects.get_for_model(self.model, False)
         if not request.user.is_superuser and request.user.has_perm('%s.view_%s' % (ct.app_label, ct.model)):
             readonly = list(self.readonly_fields) + [el.name for el in self.model._meta.fields]
             return readonly
@@ -67,7 +67,7 @@ class SgoModelAdmin(admin.ModelAdmin):
 
     def get_formsets_with_inlines(self, request, obj=None):
         """
-        Choose whith inline will be hiden based on user being super user or has view permission or not.
+        Choose which inline will be hiden based on user being super user or has view permission or not.
         """
         for inline in self.get_inline_instances(request, obj):
             ct = ContentType.objects.get_for_model(inline.model)

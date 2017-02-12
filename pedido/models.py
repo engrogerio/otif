@@ -150,7 +150,6 @@ class Carregamento(BusinessUnitSpecificModel):
                 or 0, minutes =self.cliente.limite.hr_lim_carga.minute or 0)
         except:
             delta = datetime.timedelta(hours=0, minutes=0)
-
         dt_maxima = dt_previsao-delta
         if self.dt_hr_chegada > dt_maxima:
             return "Atrasado"
@@ -165,11 +164,14 @@ class Carregamento(BusinessUnitSpecificModel):
             self.hr_grade = datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
         if not self.dt_saida:
             self.dt_saida = datetime.datetime.now().date()
-
         dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
         # baseado no limite do cliente, calcula a data/hora máxima para não ser considerado atraso
         # Se não foi cadastrado limite para de liberação, considera 0
-        delta = datetime.timedelta(hours=self.cliente.hr_lim_lib.hour or 0, minutes=self.cliente.hr_lim_lib.minute or 0)
+        try:
+            delta = datetime.timedelta(hours=self.cliente.hr_lim_lib.hour or 0,
+                minutes=self.cliente.hr_lim_lib.minute or 0)
+        except:
+            delta = datetime.timedelta(hours=0, minutes=0)
         dt_maxima = dt_previsao + delta
         if self.dt_hr_liberacao > dt_maxima:
             return "Atrasado"
@@ -206,6 +208,7 @@ class Item(BusinessUnitSpecificModel):
 
     def __unicode__(self):
         return self.ds_produto or ''
+
 
 class Pallet(models.Model):
     carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')

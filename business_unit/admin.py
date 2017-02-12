@@ -5,7 +5,6 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from business_unit.models import User_BusinessUnit
 from business_unit.models import User_Estabelecimento
-from business_unit.models import BusinessUnit
 from django import forms
 
 
@@ -45,12 +44,13 @@ class MyEstabelecimentoUserAdmin(UserAdmin):
         MyEstabelecimentoUserAdmin.list_display =['username','email','first_name','last_name',]
             # 'user_business_unit']
         # MyUserAdmin.list_filter+=('user_business_unit',)
-#________________________________________________________________________________________
+
 
 class UserBusinessUnitAdminForm(forms.ModelForm):
     class Meta:
         model = User_BusinessUnit
         fields = "__all__"
+
 
 class UserBusinessUnitAdmin(admin.ModelAdmin):
     form = UserBusinessUnitAdminForm
@@ -67,6 +67,7 @@ class User_EstabelecimentoAdminForm(forms.ModelForm):
         model = User_Estabelecimento
         fields = "__all__"
 
+
 class User_EstabelecimentoAdmin(admin.ModelAdmin):
     form = User_EstabelecimentoAdminForm
     fieldsets = (
@@ -75,7 +76,6 @@ class User_EstabelecimentoAdmin(admin.ModelAdmin):
         }),
     )
     list_display = ('user','business_unit')
-#_________________________________________________________________________________________
 
 
 # Re-register UserAdmin
