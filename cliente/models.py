@@ -13,4 +13,4 @@ class Cliente(OtifModel):
         verbose_name_plural = "Limites por Cliente"
 
     def __unicode__(self):
-        return  self.nm_ab_cli + ' - '+str(self.hr_lim_lib) + ' / '+ str(self.hr_lim_carga) #self.get_cliente()+' - '+
+        return  self.nm_ab_cli
