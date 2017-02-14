@@ -109,10 +109,6 @@ class ItemInline_ReadOnly(ItemInline):
 class PedidoCarregamentoAdmin(SgoModelAdmin):
     form = PedidoCarregamentoAdminForm
 
-    def is_proxy(self):
-        print (dir(self))
-        return True
-
     def save_model(self, request, obj, form, change):
         obj.save()
 

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from django.contrib import admin
 from grade.models import Grade
-
+from sgo.admin import SgoModelAdmin
 from django import forms
 
 
@@ -18,7 +18,7 @@ class GradeAdminForm(forms.ModelForm):
         fields = '__all__'
 
 
-class GradeAdmin(admin.ModelAdmin):
+class GradeAdmin(SgoModelAdmin):
     def queryset(self, request):
         qs = super(GradeAdmin, self).queryset(request)
         self.request = request

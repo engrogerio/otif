@@ -34,7 +34,6 @@ class SgoModelAdmin(admin.ModelAdmin):
         return False
 
     def change_view(self, request, object_id, form_url='',extra_context=None):
-
         ct = ContentType.objects.get_for_model(self.model)
         if not request.user.is_superuser and request.user.has_perm('%s.view_%s' % (ct.app_label, ct.model)):
             extra_context = extra_context or {}
@@ -95,8 +94,19 @@ class SgoModelAdmin(admin.ModelAdmin):
         obj.save()
     """
     def get_queryset(self, request):
-        self.user = request.user
-        qs = super(SgoModelAdmin, self).get_queryset(request)
+        """
+        If the model inherits from BusinessUnitSpecificModel,
+        Compares the user business_unit with a list of all the business unit the user has permission to access.
+        :param request:
+        :return: queryset filtered for records that the user has permission to access.
+        """
+        try:
+            user = request.user
+            user_business_unit = user.user_estabelecimento.unit.id
+            qs = super(SgoModelAdmin, self).get_queryset(request).\
+                filter(business_unit_id__in=user.user_business_unit.values_list('unit_id', flat='True'))
+        except:
+            qs = super(SgoModelAdmin, self).get_queryset(request)
         return qs
 
     def get_form(self, request, obj=None, **kwargs):
