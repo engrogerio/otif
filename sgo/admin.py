@@ -29,9 +29,9 @@ class SgoModelAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_max_show_all = 5000
 
-    def has_delete_permission(self, request, obj=None):
-        #Disable delete
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     #Disable delete
+    #     return False
 
     def change_view(self, request, object_id, form_url='',extra_context=None):
         ct = ContentType.objects.get_for_model(self.model)

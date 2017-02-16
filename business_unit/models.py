@@ -57,7 +57,7 @@ class User_Estabelecimento(models.Model):
     the form for User. One user has only one User_Estabelecimento.
     """
     unit = models.ForeignKey(BusinessUnit, verbose_name='Cód. Estab.',
-                            related_name='unit_estabelecimento', null='true', blank='true',)
+                            related_name='unit_estabelecimento',)
     user = models.OneToOneField(User, verbose_name='Usuário',
                             related_name='user_estabelecimento', null='true', blank='true',)
 
