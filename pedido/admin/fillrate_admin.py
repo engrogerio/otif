@@ -21,20 +21,15 @@ class PedidoItemAdmin(SgoModelAdmin):
 class MultaItemInline(SgoTabularInlineAdmin):
     model = MultaItem
     extra = 0
-    fields = ['vl_base_multa', 'vl_multa',]
+    fields = ['vl_multa',] #'vl_base_multa' excluido iss#34
 
     def is_readonly(self):
         return False
 
-    def clean_vl_base_multa(self):
-        data = self.cleaned_data['vl_base_multa']
-        data = '${:,.2f}'.format(data)
-        return data
-
 
 class MultaItemInline_ReadOnly(MultaItemInline):
 
-    readonly_fields = ['vl_base_multa', 'vl_multa',]
+    readonly_fields = ['vl_multa',]
 
     def is_readonly(self):
         return True

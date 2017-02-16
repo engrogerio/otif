@@ -17,14 +17,14 @@ class NoShowAdminForm(forms.ModelForm):
 class MultaCarregamentoInline(SgoTabularInlineAdmin):
     model = MultaCarregamento
     extra = 0
-    fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
+    fields = ['vl_multa',] #'vl_base_multa', 'vl_fixo' excluidos iss#34
 
     def is_readonly(self):
         return False
 
 
 class MultaCarregamentoInline_ReadOnly(MultaCarregamentoInline):
-    readonly_fields = ['vl_base_multa', 'vl_fixo', 'vl_multa',]
+    readonly_fields = ['vl_multa',]
 
     def is_readonly(self):
         return True
@@ -87,9 +87,6 @@ class NoShowAdmin(SgoModelAdmin):
     def has_add_permission(self, request):
         return False
 
-    def clean_vl_base_multa(self):
-        data = self.cleaned_data['vl_base_multa']
-        data = '${:,.2f}'.format(data)
-        return data
+
 
 admin.site.register(NoShow, NoShowAdmin)
