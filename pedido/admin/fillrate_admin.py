@@ -61,21 +61,33 @@ class FillRateListFilter(SimpleListFilter):
 
 class FillRateAdmin(SgoModelAdmin):
     verbose_name = "Fill Rate"
-    list_display = ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'business_unit', 'cliente', 'cd_produto',  'qt_falta',
-                    'motivo','total_multas')
+    list_display = ('get_nota_fiscal', 'get_pedido', 'get_ordem_compra', 'business_unit', 'cliente', 'cd_produto',
+                    'qt_falta', 'motivo', 'total_multas')
 
-    readonly_fields = ('business_unit', 'cliente', 'nr_nota_fis', 'ds_ord_compra', 'nr_pedido', 'cd_produto',  'qt_falta',
+    readonly_fields = ('business_unit', 'cliente', 'get_nota_fiscal', 'get_ordem_compra',
+                       'get_pedido', 'cd_produto', 'qt_falta',
                        'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada', 'ds_produto', 'motivo' )
     inlines = [MultaItemInline, MultaItemInline_ReadOnly]
     fieldsets = (
         (None,{'fields':(
-            (('business_unit', 'cliente'), ('nr_nota_fis', 'ds_ord_compra', 'nr_pedido',),
+            (('business_unit', 'cliente'), ('get_nota_fiscal', 'get_ordem_compra', 'get_pedido',),
              ('cd_produto','ds_produto'), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
              ('qt_falta', 'qt_carregada','motivo'))),
     }),)
     list_filter = ['business_unit', FillRateListFilter, ]
 
-    search_fields = ['nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'cliente__nm_ab_cli']
+    search_fields = ['carregamento__nr_nota_fis', 'carregamento__nr_pedido', 'carregamento__ds_ord_compra',
+                     'cliente__nm_ab_cli'
+                     ]
+
+    def get_nota_fiscal(self, obj):
+        return obj.carregamento.nr_nota_fis
+
+    def get_ordem_compra(self, obj):
+        return obj.carregamento.ds_ord_compra
+
+    def get_pedido(self, obj):
+        return obj.carregamento.nr_pedido
 
     def total_multas(self, obj):
         multas = [k.vl_multa for k in obj.item_multa.all()]
@@ -88,5 +100,11 @@ class FillRateAdmin(SgoModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    get_nota_fiscal.admin_order_field  = 'carregamento__nr_nota_fis'  #Allows column order sorting
+    get_nota_fiscal.short_description = 'Nota Fiscal'  #Renames column head
+    get_ordem_compra.admin_order_field  = 'carregamento__ds_ord_compra'
+    get_ordem_compra.short_description = 'Ordem Compra'
+    get_pedido.admin_order_field  = 'carregamento__nr_pedido'
+    get_pedido.short_description = 'Pedido'
 
 admin.site.register(FillRate, FillRateAdmin)

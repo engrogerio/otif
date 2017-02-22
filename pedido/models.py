@@ -8,6 +8,7 @@ import datetime
 from falta.models import Motivo
 from business_unit.models import BusinessUnitSpecificModel
 
+# TODO: Atualizar a documentação
 """
 Modelo de pedidos importados do Totvs ERP via arquivo txt.
 Dados importados não estão normalizados.
@@ -90,14 +91,15 @@ class Carregamento(BusinessUnitSpecificModel):
         (SIM,'S'),
         (NAO,'N')
     )
-    # business_unit = models.CharField('Código do estab.', max_length=3, null='true', blank='true', )
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
     nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
+    nr_pedido = models.CharField('Pedido', max_length=24, null='true', blank='true', )
+    ds_ord_compra = models.CharField('Ordem compra', max_length=15, null='true', blank='true', )
     dt_saida = models.DateField('Data Programada', null='true', blank='true', )
-    hr_grade = models.TimeField('Horário Programado', null='true', blank='true',)
+    hr_grade = models.TimeField('Horário', null='true', blank='true',)
     ds_placa = models.CharField('Placa do veículo', max_length=8, null='true', blank='true', )
-    ds_transp = models.CharField('Nome da transportadora', max_length=30, null='true', blank='true', )
+    ds_transp = models.CharField('Transportadora', max_length=30, null='true', blank='true', )
     nr_lacre = models.CharField('Número do lacre', max_length=10, null='true', blank='true', )
     dt_hr_chegada = models.DateTimeField('Chegada do caminhão', null='true', blank='true', )
     dt_hr_ini_carga = models.DateTimeField('Inicio do carregamento', null='true', blank='true', )
@@ -115,7 +117,6 @@ class Carregamento(BusinessUnitSpecificModel):
 
     def set_chegada(self):
         self.dt_hr_chegada=datetime.datetime.now()
-        self.dt_saida = datetime.datetime.now()
         self.ds_status_cheg=self.get_status_cheg()
         self.id_no_show = self.NAO
         self.save()
@@ -189,9 +190,7 @@ class Carregamento(BusinessUnitSpecificModel):
 class Item(BusinessUnitSpecificModel):
     cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
                                 db_column='nm_ab_cli')
-    nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
-    nr_pedido = models.CharField('Pedido do cliente', max_length=24, null='true', blank='true', )
-    ds_ord_compra = models.CharField('Ordem de compra', max_length=15, null='true', blank='true', )
+
     cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
     ds_produto = models.CharField('Descrição do produto', max_length=200, null='true', blank='true')
     un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )

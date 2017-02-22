@@ -79,9 +79,9 @@ class ItemInline(SgoTabularInlineAdmin):
     model = Item
     formset = ItemInlineFormSet
     extra = 0
-    fields = ['nr_nota_fis', 'ds_ord_compra', 'cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
+    fields = ['cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
               'qt_carregada', 'motivo']
-    readonly_fields = ['nr_nota_fis','cd_produto','un_embalagem','qt_embalagem','qt_pilha', 'ds_ord_compra',
+    readonly_fields = ['cd_produto','un_embalagem','qt_embalagem','qt_pilha',
                        'qt_falta', ]
 
     def has_add_permission(self, request):
@@ -99,7 +99,7 @@ class ItemInline(SgoTabularInlineAdmin):
 
 
 class ItemInline_ReadOnly(ItemInline):
-    readonly_fields = ['nr_nota_fis', 'cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha', 'ds_ord_compra',
+    readonly_fields = ['cd_produto', 'un_embalagem', 'qt_embalagem', 'qt_pilha',
                        'qt_falta', 'qt_carregada', 'motivo']
 
     def is_readonly(self):
@@ -168,12 +168,15 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     inlines = [ ItemInline, ItemInline_ReadOnly, ]
     verbose_name = ('Pedido')
-    list_display = ('nr_nota_fis', 'business_unit','dt_saida', 'hr_grade', 'cliente', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
-    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit', 'ds_transp',) #'hr_grade',)
+    list_display = ('id', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'business_unit','dt_saida', 'hr_grade',
+                    'cliente', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
+    readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit',
+                       'ds_transp', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
 
     fieldsets = (
         (None, {'fields':(
-                        ('business_unit','cliente','dt_saida','hr_grade', 'grade'),
+                        ('business_unit','cliente','nr_nota_fis', 'nr_pedido', 'ds_ord_compra',),
+                        ('dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
                         ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
                         ('ds_obs_carga','qt_pallet',),
@@ -184,7 +187,6 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
     )
-    #readonly_fields = ('business_unit','nm_ab_cliente','nr_nota_fis','nr_pedido','dt_atlz',)
     list_filter = ('business_unit','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {
