@@ -91,8 +91,7 @@ class Carregamento(BusinessUnitSpecificModel):
         (SIM,'S'),
         (NAO,'N')
     )
-    cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
-                                db_column='nm_ab_cli')
+    cliente = models.ForeignKey(Cliente, verbose_name='Cliente', blank='true', null='true', )
     nr_nota_fis = models.CharField('Nota fiscal', max_length=32, null='true', blank='true', )
     nr_pedido = models.CharField('Pedido', max_length=24, null='true', blank='true', )
     ds_ord_compra = models.CharField('Ordem compra', max_length=15, null='true', blank='true', )
@@ -109,7 +108,7 @@ class Carregamento(BusinessUnitSpecificModel):
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
-    ds_obs_carga = models.TextField('Obs', max_length=500, null='true', blank='true', )
+    ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, null='true', blank='true',)
 
     def __unicode__(self):
@@ -188,8 +187,6 @@ class Carregamento(BusinessUnitSpecificModel):
         #     super(Item, self).save()
 
 class Item(BusinessUnitSpecificModel):
-    cliente = models.ForeignKey(Cliente, verbose_name='Cliente', to_field='nm_ab_cli', blank='true', null='true',
-                                db_column='nm_ab_cli')
 
     cd_produto = models.CharField('Código do produto', max_length=32, null='true', blank='true', )
     ds_produto = models.CharField('Descrição do produto', max_length=200, null='true', blank='true')

@@ -28,8 +28,7 @@ class Grade(BusinessUnitSpecificModel):
         (DOM, 'Domingo'),
     )
 
-    cliente = models.ForeignKey(Cliente, to_field='nm_ab_cli',
-        db_column='nm_ab_cli')
+    cliente = models.ForeignKey(Cliente,)
     hr_grade = models.TimeField ('Horário', )
     dt_semana = models.IntegerField('Dia da semana',choices = DIA_SEMANA,
         default= SEG)

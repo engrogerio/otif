@@ -61,16 +61,16 @@ class FillRateListFilter(SimpleListFilter):
 
 class FillRateAdmin(SgoModelAdmin):
     verbose_name = "Fill Rate"
-    list_display = ('get_nota_fiscal', 'get_pedido', 'get_ordem_compra', 'business_unit', 'cliente', 'cd_produto',
+    list_display = ('get_nota_fiscal', 'get_pedido', 'get_ordem_compra', 'business_unit', 'get_cliente', 'cd_produto',
                     'qt_falta', 'motivo', 'total_multas')
 
-    readonly_fields = ('business_unit', 'cliente', 'get_nota_fiscal', 'get_ordem_compra',
+    readonly_fields = ('business_unit', 'get_cliente', 'get_nota_fiscal', 'get_ordem_compra',
                        'get_pedido', 'cd_produto', 'qt_falta',
                        'un_embalagem', 'qt_embalagem', 'qt_pilha', 'qt_carregada', 'ds_produto', 'motivo' )
     inlines = [MultaItemInline, MultaItemInline_ReadOnly]
     fieldsets = (
         (None,{'fields':(
-            (('business_unit', 'cliente'), ('get_nota_fiscal', 'get_ordem_compra', 'get_pedido',),
+            (('business_unit', 'get_cliente'), ('get_nota_fiscal', 'get_ordem_compra', 'get_pedido',),
              ('cd_produto','ds_produto'), ('un_embalagem', 'qt_embalagem', 'qt_pilha'),
              ('qt_falta', 'qt_carregada','motivo'))),
     }),)
@@ -82,6 +82,9 @@ class FillRateAdmin(SgoModelAdmin):
 
     def get_nota_fiscal(self, obj):
         return obj.carregamento.nr_nota_fis
+
+    def get_cliente(self, obj):
+        return obj.carregamento.cliente.nm_ab_cli
 
     def get_ordem_compra(self, obj):
         return obj.carregamento.ds_ord_compra

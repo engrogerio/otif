@@ -15,6 +15,7 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         fields = "__all__"
         widgets = {
             'hr_grade': TextInput(attrs={'size': 10}),
+            'ds_obs_carga': Textarea(attrs={'rows': 4, 'cols': 30}),
         }
 
     grade = forms.ModelChoiceField(label='Grade do Cliente',queryset=Grade.objects.all(), required=False,)

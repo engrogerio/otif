@@ -62,7 +62,7 @@ class NoShowAdmin(SgoModelAdmin):
         'business_unit', 'cliente', 'dt_saida', 'hr_grade', 'ds_status_carrega', 'ds_status_cheg',
         'ds_status_lib', 'total_multas', 'id_no_show', )
     list_filter = ['business_unit', NoShowListFilter,]
-    readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'ds_transp','nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
+    readonly_fields = ('business_unit', 'cliente', 'dt_saida', 'hr_grade', 'ds_transp','nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
     inlines = [MultaCarregamentoInline, MultaCarregamentoInline_ReadOnly]
     fieldsets = (
         (None, {'fields': (
