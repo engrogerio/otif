@@ -5,11 +5,18 @@ class LogEntryAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return True
+
     def has_add_permission(self, request, obj=None):
         return False
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     """Create an admin view of the history/log table"""
-    list_display = ('action_time','user','content_type','change_message','is_addition','is_change','is_deletion','object_repr')
+    list_display = (
+        'action_time', 'user', 'content_type', 'object_id', 'change_message', 'is_addition', 'is_change', 'is_deletion',
+        'object_repr'
+        )
     list_filter = ['action_time','user','content_type']
     ordering = ('-action_time',)
 

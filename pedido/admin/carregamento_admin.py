@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 from django.contrib import admin
+from django.contrib.admin.models import ContentType
+from django.contrib.admin.models import LogEntry, CHANGE
 from django.forms import TextInput, Textarea
 from pedido.models import Carregamento, Item
 from grade.models import Grade
@@ -8,6 +10,7 @@ from django import forms
 from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
 from django.db import models
 from django.forms.models import BaseInlineFormSet
+
 
 class PedidoCarregamentoAdminForm(forms.ModelForm):
     class Meta:
@@ -116,11 +119,22 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    def add_log_carregamento(self, request, queryset, obj):
+        ct = ContentType.objects.get_for_model(queryset.model)
+        LogEntry.objects.log_action(  # log_entry --> log_action
+            user_id=request.user.id,
+            content_type_id=ct.pk,
+            object_id=obj.pk,
+            object_repr=''.join([obj.cliente.nm_ab_cli, obj.nr_nota_fis]),
+            action_flag=CHANGE,  # actions_flag --> action_flag
+            change_message='Modificado Status para ' + obj.STATUS[obj.ds_status_carrega][1])
+
     def set_chegada(self, request, queryset):
         # Para cada carregamento selecionado, seta a hora de chegada do caminhão
         for c in queryset:
             c.set_chegada()
-        rows_updated = queryset.update(ds_status_carrega=Carregamento.NA_PLANTA,)
+            self.add_log_carregamento(request, queryset, c)
+        rows_updated = queryset.count()
         if rows_updated == 1:
             message_bit = "1 carregamento foi"
         else:
@@ -132,7 +146,8 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         # Para cada carregamento selecionado, seta a hora de início do carregamento
         for c in queryset:
             c.set_inicio()
-        rows_updated = queryset.update(ds_status_carrega=Carregamento.INICIO,)
+            self.add_log_carregamento(request, queryset, c)
+        rows_updated = queryset.count()
         if rows_updated == 1:
             message_bit = "1 carregamento foi"
         else:
@@ -144,7 +159,8 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         # Para cada carregamento selecionado, seta a hora de fim do carregamento
         for c in queryset:
             c.set_fim()
-        rows_updated = queryset.update(ds_status_carrega=Carregamento.FIM,)
+            self.add_log_carregamento(request, queryset, c)
+        rows_updated = queryset.count()
         if rows_updated == 1:
             message_bit = "1 carregamento foi"
         else:
@@ -155,8 +171,9 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     def set_libera(self, request, queryset):
         # Para cada carregamento selecionado, seta a hora de liberação do caminhão
         for c in queryset:
-            c.set_libera() #carregamento=c)
-        rows_updated = queryset.update(ds_status_carrega=Carregamento.LIBERADO,)
+            c.set_libera()
+            self.add_log_carregamento(request, queryset, c)
+        rows_updated = queryset.count()
         if rows_updated == 1:
             message_bit = "1 carregamento foi"
         else:
@@ -188,7 +205,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
     )
-    list_filter = ('business_unit','ds_status_carrega',) #'nm_ab_cli') #'[EstabListFilter,]
+    list_filter = ('business_unit','ds_status_carrega',)
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},

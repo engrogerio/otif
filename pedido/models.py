@@ -116,20 +116,24 @@ class Carregamento(BusinessUnitSpecificModel):
 
     def set_chegada(self):
         self.dt_hr_chegada=datetime.datetime.now()
+        self.ds_status_carrega = self.NA_PLANTA
         self.ds_status_cheg=self.get_status_cheg()
-        self.id_no_show = self.NAO
+        #self.id_no_show = self.NAO
         self.save()
 
     def set_inicio(self):
         self.dt_hr_ini_carga=datetime.datetime.now()
+        self.ds_status_carrega = self.INICIO
         self.save()
 
     def set_fim(self):
         self.dt_hr_fim_carga=datetime.datetime.now()
+        self.ds_status_carrega = self.FIM
         self.save()
 
     def set_libera(self):
         self.dt_hr_liberacao=datetime.datetime.now()
+        self.ds_status_carrega = self.LIBERADO
         self.ds_status_lib=self.get_status_lib()
         self.save()
 

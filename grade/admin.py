@@ -5,7 +5,6 @@ from sgo.admin import SgoModelAdmin
 from django import forms
 
 
-
 class GradeInline(admin.TabularInline):
     model = Grade
     extra = 0
@@ -19,6 +18,7 @@ class GradeAdminForm(forms.ModelForm):
 
 
 class GradeAdmin(SgoModelAdmin):
+
     def queryset(self, request):
         qs = super(GradeAdmin, self).queryset(request)
         self.request = request
