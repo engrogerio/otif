@@ -96,7 +96,7 @@ class ItemInlineFormSet(BaseInlineFormSet):
             id = form['id'].value()
             item = Item.objects.get(id=id)
             embalagens = int(item.qt_embalagem)
-            carregadas = int(form['qt_carregada'].value())
+            carregadas = int(form['qt_carregada'].value() or 0)
             falta = embalagens-carregadas
             motivo = form['motivo'].value()
             # Se quantidade em falta for maior do que zero e não tiver
