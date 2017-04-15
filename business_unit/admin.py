@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from business_unit.models import User_BusinessUnit
 from business_unit.models import User_Estabelecimento
 from django import forms
+from business_unit.models import BusinessUnit
 
 
 # Define an inline admin descriptor for BusinessUnit model
@@ -81,4 +82,4 @@ class User_EstabelecimentoAdmin(admin.ModelAdmin):
 # Re-register UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
-# admin.site.register(BusinessUnit)
+admin.site.register(BusinessUnit)

@@ -10,15 +10,6 @@ from business_unit.models import BusinessUnitSpecificModel
 
 # TODO: Atualizar a documentação
 """
-Modelo de pedidos importados do Totvs ERP via arquivo txt.
-Dados importados não estão normalizados.
-Modelo possue dados de Cliente, Produtos, Pedidos, NF e Transportadora
-
-Aplicação: Otif
-
-    Modelo: OtifModel (base para todas os modelos)
-        dt_atlz
-        id_usr_atlz
 
 Aplicação: Pedido
 
@@ -107,9 +98,10 @@ class Carregamento(BusinessUnitSpecificModel):
     ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=PROGRAMADO, null='true', blank='true')
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
-    qt_pallet = models.IntegerField('Quantidade de Pallets', null='true', blank='true', )
+    qt_pallet = models.IntegerField('Quantidade de Pallets', default=0, )
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, null='true', blank='true',)
+    pallets = models.CharField('Pallets', max_length=1000, null='true', blank='true',)
 
     def __unicode__(self):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
@@ -182,13 +174,6 @@ class Carregamento(BusinessUnitSpecificModel):
         else:
             return "No Horário"
 
-        # TODO:
-        # def save(self):
-        #     """
-        #     Cria um popup com campos para preencher os números dos pallets para
-        #         cada pedido conforme qt_pallet.
-        #     """
-        #     super(Item, self).save()
 
 class Item(BusinessUnitSpecificModel):
 
@@ -209,12 +194,12 @@ class Item(BusinessUnitSpecificModel):
     def __unicode__(self):
         return self.ds_produto or ''
 
-
-class Pallet(models.Model):
-    carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')
-    nr_pallet = models.IntegerField('Nr. Pallet',  null='true', blank='true')
-    def __unicode__(self):
-        return self.nr_pallet
+#
+# class Pallet(models.Model):
+#     carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')
+#     nr_pallet = models.IntegerField('Nr. Pallet',  null='true', blank='true')
+#     def __unicode__(self):
+#         return self.nr_pallet
 
 
 class FillRate(Item):

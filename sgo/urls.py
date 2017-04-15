@@ -20,6 +20,7 @@ urlpatterns = [
 
     url(r'^', include(admin.site.urls), name='menu'),
     url(r'^explorer/', include('explorer.urls')),
+
 ]
 
 

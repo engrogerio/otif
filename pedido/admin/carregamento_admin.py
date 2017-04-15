@@ -12,7 +12,33 @@ from django.db import models
 from django.forms.models import BaseInlineFormSet
 
 
+class PalletWidget(forms.MultiWidget):
+
+    def __init__(self, attrs=None):
+        self.qtd_pallets = attrs['qtty']
+        attrs['size'] = 5
+        widgets = [forms.TextInput(attrs)] * self.qtd_pallets
+        super(PalletWidget, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return value.split(',')
+        return ['']*self.qtd_pallets
+
+
+class PalletField(forms.fields.MultiValueField):
+
+    def __init__(self, attrs=None):
+        self.widget = PalletWidget(attrs)
+        fields = [forms.fields.CharField()] * attrs['qtty']
+        super(PalletField, self).__init__(fields, attrs)
+
+    def compress(self, values):
+        return ','.join(values)
+
+
 class PedidoCarregamentoAdminForm(forms.ModelForm):
+
     class Meta:
         model = Carregamento
         fields = "__all__"
@@ -25,18 +51,26 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwargs)
-
         try:
             self.fields['hr_grade'].widget.attrs['readonly'] = True
             dt_semana = self.instance.dt_saida.weekday()
         except:
             dt_semana = -1
+        qt_pallet = self.instance.qt_pallet
+
+        # se a quantidade de pallets = 0 torna invisível o campo de num. de pallets
+        if qt_pallet == 0:
+            self.fields['pallets'].widget = forms.HiddenInput()
+        else:
+            self.fields['pallets'] = PalletField(attrs={'qtty': qt_pallet,})
+
         cliente = self.instance.cliente_id
         business_unit = self.instance.business_unit
         grade_queryset = Grade.objects.filter(business_unit__unit=business_unit.unit).filter(dt_semana=dt_semana).filter(cliente_id=cliente).order_by('hr_grade')
         self.fields['grade'].queryset = grade_queryset
 
     def save(self,commit=True):
+
         instance = super(PedidoCarregamentoAdminForm, self).save(commit=False)
         # salva a hora do combo da grade no carregamento
         try:
@@ -52,20 +86,19 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
 
 
 class ItemInlineFormSet(BaseInlineFormSet):
-    """
-    Se quantidade faltante>0 exige o preenchimento
-    do motivo
-    """
+
     def clean(self):
+        """
+        Se quantidade faltante>0 exige o preenchimento
+        do motivo
+        """
         for form in self.forms:
             id = form['id'].value()
             item = Item.objects.get(id=id)
             embalagens = int(item.qt_embalagem)
             carregadas = int(form['qt_carregada'].value())
             falta = embalagens-carregadas
-            #print('carregadas',carregadas, ' - ', 'embalagens', embalagens, ' - ','falta', falta)
             motivo = form['motivo'].value()
-            # print('motivo',motivo, ' - ', 'falta', falta, motivo=='' , falta>0)
             # Se quantidade em falta for maior do que zero e não tiver
             # nenhum motivo selecionado, mostra mensagem de erro.
             if motivo=='' and falta > 0 and carregadas>0:
@@ -73,8 +106,8 @@ class ItemInlineFormSet(BaseInlineFormSet):
                 form.add_error('motivo', msg)
             else:
                 form.cleaned_data['motivo'] = ''
-        #super (ItemInlineFormSet, self).clean()
-        #return form.cleaned_data
+        super (ItemInlineFormSet, self).clean()
+        return form.cleaned_data
 
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
 
@@ -197,7 +230,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                         ('dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
                         ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
-                        ('ds_obs_carga','qt_pallet',),
+                        ('ds_obs_carga','qt_pallet', 'pallets'),
                         )
                 }),
         ('Acompanhamento do Carregamento',{
