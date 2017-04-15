@@ -60,7 +60,11 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
 
         # se a quantidade de pallets = 0 torna invisível o campo de num. de pallets
         if qt_pallet == 0:
-            self.fields['pallets'].widget = forms.HiddenInput()
+            try:
+                self.fields['pallets'].widget = forms.HiddenInput()
+            except:
+                #TODO: When read only mode, throws Key Error here
+                pass
         else:
             self.fields['pallets'] = PalletField(attrs={'qtty': qt_pallet,})
 
