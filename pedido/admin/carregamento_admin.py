@@ -10,6 +10,8 @@ from django import forms
 from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
 from django.db import models
 from django.forms.models import BaseInlineFormSet
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+
 
 
 class PalletWidget(forms.MultiWidget):
@@ -217,14 +219,21 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             message_bit = "%s carregamentos foram" % rows_updated
         self.message_user(request, "%s marcado(s) como caminhão liberado." % message_bit)
 
+    def get_classe_cli(self,obj):
+        return obj.cliente.ds_classe_cli
+
+    get_classe_cli.short_description = 'Canal Cliente'
+    get_classe_cli.admin_order_field = 'cliente__ds_classe_cli'
+
     set_libera.short_description='Sinalizar liberação do caminhão'
 
     actions=[set_chegada, set_inicio, set_fim, set_libera]
 
     inlines = [ ItemInline, ItemInline_ReadOnly, ]
     verbose_name = ('Pedido')
+
     list_display = ('id', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'business_unit','dt_saida', 'hr_grade',
-                    'cliente', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
+                    'cliente', 'get_classe_cli', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit',
                        'ds_transp', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
 
@@ -242,7 +251,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
     )
-    list_filter = ('business_unit','ds_status_carrega',)
+    list_filter = (('dt_saida', DateRangeFilter),'business_unit','ds_status_carrega','cliente__ds_classe_cli')
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},

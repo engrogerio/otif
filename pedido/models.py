@@ -107,24 +107,32 @@ class Carregamento(BusinessUnitSpecificModel):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
 
     def set_chegada(self):
-        self.dt_hr_chegada=datetime.datetime.now()
+        # Se já houver uma data no campo dt_hr_chegada, mantém a data
+        if not self.dt_hr_chegada:
+            self.dt_hr_chegada=datetime.datetime.now()
         self.ds_status_carrega = self.NA_PLANTA
         self.ds_status_cheg=self.get_status_cheg()
         #self.id_no_show = self.NAO
         self.save()
 
     def set_inicio(self):
-        self.dt_hr_ini_carga=datetime.datetime.now()
+        # Se já houver uma data no campo dt_hr_ini_carga, mantém a data
+        if not self.dt_hr_ini_carga:
+            self.dt_hr_ini_carga=datetime.datetime.now()
         self.ds_status_carrega = self.INICIO
         self.save()
 
     def set_fim(self):
-        self.dt_hr_fim_carga=datetime.datetime.now()
+        # Se já houver uma data no campo dt_hr_fim_carga, mantém a data
+        if not self.dt_hr_fim_carga:
+            self.dt_hr_fim_carga=datetime.datetime.now()
         self.ds_status_carrega = self.FIM
         self.save()
 
     def set_libera(self):
-        self.dt_hr_liberacao=datetime.datetime.now()
+        # Se já houver uma data no campo dt_hr_liberacao, mantém a data
+        if not self.dt_hr_liberacao:
+            self.dt_hr_liberacao=datetime.datetime.now()
         self.ds_status_carrega = self.LIBERADO
         self.ds_status_lib=self.get_status_lib()
         self.save()

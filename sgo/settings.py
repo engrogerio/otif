@@ -87,6 +87,7 @@ INSTALLED_APPS = (
     'falta',
     'business_unit',
     'explorer',
+    'rangefilter'
 
 )
 
