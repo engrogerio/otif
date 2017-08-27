@@ -11,7 +11,9 @@ from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
 from django.db import models
 from django.forms.models import BaseInlineFormSet
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
-
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from pedido.forms import UpdateDateForm
 
 
 class PalletWidget(forms.MultiWidget):
@@ -98,6 +100,7 @@ class ItemInlineFormSet(BaseInlineFormSet):
         Se quantidade faltante>0 exige o preenchimento
         do motivo
         """
+        form = None
         for form in self.forms:
             id = form['id'].value()
             item = Item.objects.get(id=id)
@@ -113,7 +116,7 @@ class ItemInlineFormSet(BaseInlineFormSet):
             else:
                 form.cleaned_data['motivo'] = ''
         super (ItemInlineFormSet, self).clean()
-        return form.cleaned_data
+        if form: return form.cleaned_data
 
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
 
@@ -150,7 +153,10 @@ class ItemInline_ReadOnly(ItemInline):
 
 
 class PedidoCarregamentoAdmin(SgoModelAdmin):
+
     form = PedidoCarregamentoAdminForm
+    template_name = 'pedido/add_date.html'
+    actions=['set_chegada', 'set_inicio', 'set_fim', 'set_libera']
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -169,55 +175,138 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             change_message='Modificado Status para ' + obj.STATUS[obj.ds_status_carrega][1])
 
     def set_chegada(self, request, queryset):
-        # Para cada carregamento selecionado, seta a hora de chegada do caminhão
-        for c in queryset:
-            c.set_chegada()
-            self.add_log_carregamento(request, queryset, c)
-        rows_updated = queryset.count()
-        if rows_updated == 1:
-            message_bit = "1 carregamento foi"
-        else:
-            message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcado(s) como caminhão na planta." % message_bit)
-    set_chegada.short_description='Sinalizar chegada do caminhão'
+        form = None
+        action_name = 'set_chegada'
+
+        if 'apply' in request.POST:
+            form = UpdateDateForm(request.POST)
+            if form.is_valid():
+                # Para cada carregamento selecionado, seta a hora de chegada do caminhão
+                for c in queryset:
+                    date = form.cleaned_data['data']
+                    c.set_chegada(date)
+                    # adiciona evento no log
+                    self.add_log_carregamento(request, queryset, c)
+                    # save event
+                    c.save()
+                rows_updated = queryset.count()
+
+                if rows_updated == 1:
+                    message_bit = "1 carregamento foi"
+                else:
+                    message_bit = "%s carregamentos foram" % rows_updated
+                self.message_user(request, "%s marcado(s) como caminhão na planta." % message_bit)
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = UpdateDateForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+        context = {
+            'queryset': queryset,
+            'form': form,
+            'action_name': action_name,
+        }
+
+        return render(request, self.template_name, context)
+    set_chegada.short_description = 'Sinalizar chegada do caminhão'
 
     def set_inicio(self, request, queryset):
-        # Para cada carregamento selecionado, seta a hora de início do carregamento
-        for c in queryset:
-            c.set_inicio()
-            self.add_log_carregamento(request, queryset, c)
-        rows_updated = queryset.count()
-        if rows_updated == 1:
-            message_bit = "1 carregamento foi"
-        else:
-            message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcado(s) como iniciado(s)." % message_bit)
-    set_inicio.short_description='Sinalizar início do carregamento'
+        form = None
+        action_name = 'set_inicio'
+        if 'apply' in request.POST:
+            form = UpdateDateForm(request.POST)
+            if form.is_valid():
+                # Para cada carregamento selecionado, seta a hora de chegada do caminhão
+                for c in queryset:
+                    date = form.cleaned_data['data']
+                    c.set_inicio(date)
+                    # adiciona evento no log
+                    self.add_log_carregamento(request, queryset, c)
+                    # save event
+                    c.save()
+                rows_updated = queryset.count()
+
+                if rows_updated == 1:
+                    message_bit = "1 carregamento foi"
+                else:
+                    message_bit = "%s carregamentos foram" % rows_updated
+                self.message_user(request, "%s marcado(s) como iniciado(s)." % message_bit)
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = UpdateDateForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+        context = {
+            'queryset': queryset,
+            'form': form,
+            'action_name': action_name,
+        }
+
+        return render(request, self.template_name, context)
+    set_inicio.short_description = 'Sinalizar início do carregamento'
 
     def set_fim(self, request, queryset):
-        # Para cada carregamento selecionado, seta a hora de fim do carregamento
-        for c in queryset:
-            c.set_fim()
-            self.add_log_carregamento(request, queryset, c)
-        rows_updated = queryset.count()
-        if rows_updated == 1:
-            message_bit = "1 carregamento foi"
-        else:
-            message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcado(s) como finalizado(s)." % message_bit)
-    set_fim.short_description='Sinalizar fim do carregamento'
+        form = None
+        action_name = 'set_fim'
+        if 'apply' in request.POST:
+            form = UpdateDateForm(request.POST)
+            if form.is_valid():
+                # Para cada carregamento selecionado, seta a hora de chegada do caminhão
+                for c in queryset:
+                    date = form.cleaned_data['data']
+                    c.set_fim(date)
+                    # adiciona evento no log
+                    self.add_log_carregamento(request, queryset, c)
+                    # save event
+                    c.save()
+                rows_updated = queryset.count()
+
+                if rows_updated == 1:
+                    message_bit = "1 carregamento foi"
+                else:
+                    message_bit = "%s carregamentos foram" % rows_updated
+                self.message_user(request, "%s marcado(s) como finalizado(s)." % message_bit)
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = UpdateDateForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+        context = {
+            'queryset': queryset,
+            'form': form,
+            'action_name': action_name,
+        }
+
+        return render(request, self.template_name, context)
+    set_fim.short_description = 'Sinalizar fim do carregamento'
 
     def set_libera(self, request, queryset):
-        # Para cada carregamento selecionado, seta a hora de liberação do caminhão
-        for c in queryset:
-            c.set_libera()
-            self.add_log_carregamento(request, queryset, c)
-        rows_updated = queryset.count()
-        if rows_updated == 1:
-            message_bit = "1 carregamento foi"
-        else:
-            message_bit = "%s carregamentos foram" % rows_updated
-        self.message_user(request, "%s marcado(s) como caminhão liberado." % message_bit)
+        form = None
+        action_name = 'set_libera'
+        if 'apply' in request.POST:
+            form = UpdateDateForm(request.POST)
+            if form.is_valid():
+                # Para cada carregamento selecionado, seta a hora de chegada do caminhão
+                for c in queryset:
+                    date = form.cleaned_data['data']
+                    c.set_libera(date)
+                    # adiciona evento no log
+                    self.add_log_carregamento(request, queryset, c)
+                    # save event
+                    c.save()
+                rows_updated = queryset.count()
+
+                if rows_updated == 1:
+                    message_bit = "1 carregamento foi"
+                else:
+                    message_bit = "%s carregamentos foram" % rows_updated
+                self.message_user(request, "%s marcado(s) como caminhão liberado." % message_bit)
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = UpdateDateForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+        context = {
+            'queryset': queryset,
+            'form': form,
+            'action_name': action_name,
+        }
+
+        return render(request, self.template_name, context)
+    set_libera.short_description = 'Sinalizar liberação do caminhão'
+
 
     def get_classe_cli(self,obj):
         return obj.cliente.ds_classe_cli
@@ -225,17 +314,15 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     get_classe_cli.short_description = 'Canal Cliente'
     get_classe_cli.admin_order_field = 'cliente__ds_classe_cli'
 
-    set_libera.short_description='Sinalizar liberação do caminhão'
 
-    actions=[set_chegada, set_inicio, set_fim, set_libera]
 
     inlines = [ ItemInline, ItemInline_ReadOnly, ]
     verbose_name = ('Pedido')
 
     list_display = ('id', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'business_unit','dt_saida', 'hr_grade',
-                    'cliente', 'get_classe_cli', 'ds_transp','ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
+                    'cliente', 'get_classe_cli', 'ds_transp', 'cd_rota', 'ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit',
-                       'ds_transp', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
+                       'ds_transp', 'cd_rota', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
 
     fieldsets = (
         (None, {'fields':(
@@ -243,7 +330,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                         ('dt_saida','hr_grade', 'grade'),
                         ('ds_transp', 'ds_placa','nr_lacre'),
                         ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
-                        ('ds_obs_carga','qt_pallet', 'pallets'),
+                        ('ds_obs_carga','qt_pallet', 'pallets','cd_rota'),
                         )
                 }),
         ('Acompanhamento do Carregamento',{
@@ -251,7 +338,9 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
         })
     )
-    list_filter = (('dt_saida', DateRangeFilter),'business_unit','ds_status_carrega','cliente__ds_classe_cli')
+    list_filter = (('dt_saida', DateRangeFilter), 'business_unit', 'ds_status_carrega', 'cd_rota','cliente__ds_classe_cli',
+                   'ds_transp')
+
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},

@@ -1184,3 +1184,7 @@ msgstr "\"%(path)s\" não existe"
 #, python-format
 msgid "Index of %(directory)s"
 msgstr "Índice de %(directory)s "
+
+#
+msgid "Reset"
+msgstr "Limpar"

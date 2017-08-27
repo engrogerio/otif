@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 
-#from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import HttpResponse
 
 from sgo import settings
 
-from django.views.generic import list
-from django.views.generic import RedirectView
-from django.core.urlresolvers import reverse_lazy
-from . import views
 
 
 admin.autodiscover()

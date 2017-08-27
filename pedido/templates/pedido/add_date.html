@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+    <form action="" method="post">{% csrf_token %}
+
+
+        <h2>Entre com a data e hora</h2>
+            {{ form }}
+        <h3> </h3>
+        <ul>{{ items|unordered_list }}</ul>
+
+        <input type="hidden" name="action" value="{{ action_name }}" />
+        <input type="submit" name="apply" value="Salvar" />
+
+    </form>
+{% endblock %}

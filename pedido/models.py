@@ -102,37 +102,35 @@ class Carregamento(BusinessUnitSpecificModel):
     ds_obs_carga = models.CharField('Obs', max_length=500, null='true', blank='true', )
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, null='true', blank='true',)
     pallets = models.CharField('Pallets', max_length=1000, null='true', blank='true',)
+    cd_rota = models.CharField('Rota', max_length=10, null= 'true', blank='true')
 
     def __unicode__(self):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
 
-    def set_chegada(self):
-        # Se já houver uma data no campo dt_hr_chegada, mantém a data
-        if not self.dt_hr_chegada:
-            self.dt_hr_chegada=datetime.datetime.now()
+    def set_chegada(self, date=datetime.datetime.now()):
+        self.dt_hr_chegada = date
         self.ds_status_carrega = self.NA_PLANTA
         self.ds_status_cheg=self.get_status_cheg()
-        #self.id_no_show = self.NAO
         self.save()
 
-    def set_inicio(self):
+    def set_inicio(self, date=datetime.datetime.now()):
         # Se já houver uma data no campo dt_hr_ini_carga, mantém a data
-        if not self.dt_hr_ini_carga:
-            self.dt_hr_ini_carga=datetime.datetime.now()
+        #if not self.dt_hr_ini_carga:
+        self.dt_hr_ini_carga = date
         self.ds_status_carrega = self.INICIO
         self.save()
 
-    def set_fim(self):
+    def set_fim(self,  date=datetime.datetime.now()):
         # Se já houver uma data no campo dt_hr_fim_carga, mantém a data
-        if not self.dt_hr_fim_carga:
-            self.dt_hr_fim_carga=datetime.datetime.now()
+        #if not self.dt_hr_fim_carga:
+        self.dt_hr_fim_carga = date
         self.ds_status_carrega = self.FIM
         self.save()
 
-    def set_libera(self):
+    def set_libera(self,  date=datetime.datetime.now()):
         # Se já houver uma data no campo dt_hr_liberacao, mantém a data
-        if not self.dt_hr_liberacao:
-            self.dt_hr_liberacao=datetime.datetime.now()
+        # if not self.dt_hr_liberacao:
+        self.dt_hr_liberacao = date
         self.ds_status_carrega = self.LIBERADO
         self.ds_status_lib=self.get_status_lib()
         self.save()
