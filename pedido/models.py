@@ -107,30 +107,32 @@ class Carregamento(BusinessUnitSpecificModel):
     def __unicode__(self):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
 
-    def set_chegada(self, date=datetime.datetime.now()):
-        self.dt_hr_chegada = date
+    def set_chegada(self, date, placa, lacre):
+        if date: self.dt_hr_chegada = date
+        if placa: self.ds_placa = placa
+        if lacre: self.nr_lacre = lacre
         self.ds_status_carrega = self.NA_PLANTA
         self.ds_status_cheg=self.get_status_cheg()
         self.save()
 
-    def set_inicio(self, date=datetime.datetime.now()):
-        # Se já houver uma data no campo dt_hr_ini_carga, mantém a data
-        #if not self.dt_hr_ini_carga:
-        self.dt_hr_ini_carga = date
+    def set_inicio(self, date, placa, lacre):
+        if date: self.dt_hr_ini_carga = date
+        if placa: self.ds_placa = placa
+        if lacre: self.nr_lacre = lacre
         self.ds_status_carrega = self.INICIO
         self.save()
 
-    def set_fim(self,  date=datetime.datetime.now()):
-        # Se já houver uma data no campo dt_hr_fim_carga, mantém a data
-        #if not self.dt_hr_fim_carga:
-        self.dt_hr_fim_carga = date
+    def set_fim(self, date, placa, lacre):
+        if date: self.dt_hr_fim_carga = date
+        if placa: self.ds_placa = placa
+        if lacre: self.nr_lacre = lacre
         self.ds_status_carrega = self.FIM
         self.save()
 
-    def set_libera(self,  date=datetime.datetime.now()):
-        # Se já houver uma data no campo dt_hr_liberacao, mantém a data
-        # if not self.dt_hr_liberacao:
-        self.dt_hr_liberacao = date
+    def set_libera(self, date, placa, lacre):
+        if date: self.dt_hr_liberacao = date
+        if placa: self.ds_placa = placa
+        if lacre: self.nr_lacre = lacre
         self.ds_status_carrega = self.LIBERADO
         self.ds_status_lib=self.get_status_lib()
         self.save()

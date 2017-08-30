@@ -175,16 +175,23 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             change_message='Modificado Status para ' + obj.STATUS[obj.ds_status_carrega][1])
 
     def set_chegada(self, request, queryset):
+        # Para cada carregamento selecionado, seta a hora de chegada do caminhão,
+        # A placa do veículo e o número do lacre caso existam
+        # campos em branco, informação não é alterada.
+
         form = None
         action_name = 'set_chegada'
 
         if 'apply' in request.POST:
             form = UpdateDateForm(request.POST)
             if form.is_valid():
-                # Para cada carregamento selecionado, seta a hora de chegada do caminhão
+
                 for c in queryset:
                     date = form.cleaned_data['data']
-                    c.set_chegada(date)
+                    placa = form.cleaned_data['ds_placa']
+                    lacre = form.cleaned_data['nr_lacre']
+                    c.set_chegada(date, placa, lacre)
+
                     # adiciona evento no log
                     self.add_log_carregamento(request, queryset, c)
                     # save event
@@ -202,7 +209,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         context = {
             'queryset': queryset,
             'form': form,
-            'action_name': action_name,
+            'action_name': action_name
         }
 
         return render(request, self.template_name, context)
@@ -217,7 +224,9 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 # Para cada carregamento selecionado, seta a hora de chegada do caminhão
                 for c in queryset:
                     date = form.cleaned_data['data']
-                    c.set_inicio(date)
+                    placa = form.cleaned_data['ds_placa']
+                    lacre = form.cleaned_data['nr_lacre']
+                    c.set_inicio(date, placa, lacre)
                     # adiciona evento no log
                     self.add_log_carregamento(request, queryset, c)
                     # save event
@@ -250,7 +259,9 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 # Para cada carregamento selecionado, seta a hora de chegada do caminhão
                 for c in queryset:
                     date = form.cleaned_data['data']
-                    c.set_fim(date)
+                    placa = form.cleaned_data['ds_placa']
+                    lacre = form.cleaned_data['nr_lacre']
+                    c.set_fim(date, placa, lacre)
                     # adiciona evento no log
                     self.add_log_carregamento(request, queryset, c)
                     # save event
@@ -283,7 +294,9 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 # Para cada carregamento selecionado, seta a hora de chegada do caminhão
                 for c in queryset:
                     date = form.cleaned_data['data']
-                    c.set_libera(date)
+                    placa = form.cleaned_data['ds_placa']
+                    lacre = form.cleaned_data['nr_lacre']
+                    c.set_libera(date, placa, lacre)
                     # adiciona evento no log
                     self.add_log_carregamento(request, queryset, c)
                     # save event
@@ -307,14 +320,11 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         return render(request, self.template_name, context)
     set_libera.short_description = 'Sinalizar liberação do caminhão'
 
-
     def get_classe_cli(self,obj):
         return obj.cliente.ds_classe_cli
 
     get_classe_cli.short_description = 'Canal Cliente'
     get_classe_cli.admin_order_field = 'cliente__ds_classe_cli'
-
-
 
     inlines = [ ItemInline, ItemInline_ReadOnly, ]
     verbose_name = ('Pedido')
