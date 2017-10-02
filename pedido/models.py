@@ -4,7 +4,7 @@ from django.db import models
 from sgo.models import OtifModel
 from grade.models import Grade
 from cliente.models import Cliente
-import datetime
+import datetime, time
 from falta.models import Motivo
 from business_unit.models import BusinessUnitSpecificModel
 
@@ -107,8 +107,9 @@ class Carregamento(BusinessUnitSpecificModel):
     def __unicode__(self):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
 
-    def set_chegada(self, date, placa, lacre):
+    def set_chegada(self, date, grade, placa, lacre):
         if date: self.dt_hr_chegada = date
+        if grade: self.hr_grade = grade
         if placa: self.ds_placa = placa
         if lacre: self.nr_lacre = lacre
         self.ds_status_carrega = self.NA_PLANTA
@@ -142,20 +143,28 @@ class Carregamento(BusinessUnitSpecificModel):
         senão "No Horário")"""
         # se não está programada a data ou hora do pedido, é inserido automaticamente a data e hora atuais como plano
         if not self.hr_grade:
-            self.hr_grade=datetime.time(datetime.datetime.now().time().hour,datetime.datetime.now().time().minute)
-        if not self.dt_saida:
-            self.dt_saida=datetime.datetime.now().date()
+            hr_grade = datetime.datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
+        else:
+            hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
 
-        dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
+        if not self.dt_saida: #data programada
+            dt_saida = datetime.datetime.now().date()
+        else:
+            dt_saida = datetime.datetime.strptime(str(self.dt_saida), "%Y-%m-%d")
+
+        dt_previsao = (datetime.datetime.combine(dt_saida, hr_grade))
+
         # baseado no limite de carregamento do cliente, calcula a data/hora máxima para não ser considerado atraso
         # Se não foi cadastrado limite para o carregamento, considera 0
         try:
-            delta = datetime.timedelta( hours=self.cliente.limite.hr_lim_carga.hour
-                or 0, minutes =self.cliente.limite.hr_lim_carga.minute or 0)
+            delta = datetime.timedelta(hours=self.cliente.hr_lim_carga.hour or 0,
+                                        minutes =self.cliente.hr_lim_carga.minute or 0)
         except:
             delta = datetime.timedelta(hours=0, minutes=0)
-        dt_maxima = dt_previsao-delta
-        if self.dt_hr_chegada > dt_maxima:
+
+        dt_hr_maxima = dt_previsao + delta
+        dt_hr_chegada = datetime.datetime.strptime(str(self.dt_hr_chegada), "%Y-%m-%d %H:%M:%S")
+        if dt_hr_chegada > dt_hr_maxima:
             return "Atrasado"
         else:
             return "No Horário"
@@ -165,19 +174,27 @@ class Carregamento(BusinessUnitSpecificModel):
         "Atrasado" senão "No Horário")"""
         # se não está programada a data ou hora do pedido, é inserido automaticamente a data e hora atuais como plano
         if not self.hr_grade:
-            self.hr_grade = datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
-        if not self.dt_saida:
-            self.dt_saida = datetime.datetime.now().date()
-        dt_previsao = (datetime.datetime.combine(self.dt_saida, self.hr_grade))
+            hr_grade = datetime.datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
+        else:
+            hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
+
+        if not self.dt_saida: #data programada
+            dt_saida = datetime.datetime.now().date()
+        else:
+            dt_saida = datetime.datetime.strptime(str(self.dt_saida), "%Y-%m-%d")
+
+        dt_previsao = (datetime.datetime.combine(dt_saida, hr_grade))
         # baseado no limite do cliente, calcula a data/hora máxima para não ser considerado atraso
         # Se não foi cadastrado limite para de liberação, considera 0
         try:
             delta = datetime.timedelta(hours=self.cliente.hr_lim_lib.hour or 0,
-                minutes=self.cliente.hr_lim_lib.minute or 0)
+                                        minutes=self.cliente.hr_lim_lib.minute or 0)
         except:
             delta = datetime.timedelta(hours=0, minutes=0)
-        dt_maxima = dt_previsao + delta
-        if self.dt_hr_liberacao > dt_maxima:
+
+        dt_hr_maxima = dt_previsao + delta
+        dt_hr_liberacao = datetime.datetime.strptime(str(self.dt_hr_liberacao), "%Y-%m-%d %H:%M:%S")
+        if dt_hr_liberacao > dt_hr_maxima:
             return "Atrasado"
         else:
             return "No Horário"

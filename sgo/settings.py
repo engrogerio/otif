@@ -107,32 +107,41 @@ ROOT_URLCONF = 'sgo.urls'
 WSGI_APPLICATION = 'sgo.wsgi.application'
 
 if LOCAL:
-     DATABASES = {
+     # DATABASES = {
+     #
+     #     'default': {
+     #         'ENGINE': 'django.db.backends.oracle',
+     #         'NAME': 'localhost:1521/xe',
+     #         'USER': 'system',
+     #         'PASSWORD': 'oracle',
+     #     }
+     # }
+    DATABASES = {
     
-         'default': {
-             'ENGINE': 'django.db.backends.oracle',
-             'NAME': 'localhost:1521/xe',
-             'USER': 'system',
-             'PASSWORD': 'oracle',
-         }
-     }
-    # DATABASES = {
-    
-    #    'default': {
-    #        'ENGINE': 'django.db.backends.sqlite3',
-    #        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    #    }
-    #}
+       'default': {
+           'ENGINE': 'django.db.backends.sqlite3',
+           'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+       }
+    }
 else:
     DATABASES = {
 
-        'default': {
-            'ENGINE': 'django.db.backends.oracle',
-            'NAME': 'brspeqor-scan:1521/totvsts',
-            'USER': 'USR_OTIF',
-            'PASSWORD': 'USR_OTIF',
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': 'localhost:1521/xe',
+        'USER': 'system',
+        'PASSWORD': 'oracle',
     }
+}
+#     DATABASES = {
+#
+#         'default': {
+#             'ENGINE': 'django.db.backends.oracle',
+#             'NAME': 'brspeqor-scan:1521/totvsts',
+#             'USER': 'USR_OTIF',
+#             'PASSWORD': 'USR_OTIF',
+#         }
+#     }
 
         # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/

@@ -13,7 +13,7 @@ from django.forms.models import BaseInlineFormSet
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from pedido.forms import UpdateDateForm
+from pedido.forms import UpdateDateForm, UpdateGradeForm
 
 
 class PalletWidget(forms.MultiWidget):
@@ -175,22 +175,23 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             change_message='Modificado Status para ' + obj.STATUS[obj.ds_status_carrega][1])
 
     def set_chegada(self, request, queryset):
-        # Para cada carregamento selecionado, seta a hora de chegada do caminhão,
-        # A placa do veículo e o número do lacre caso existam
-        # campos em branco, informação não é alterada.
+        """ Para cada carregamento selecionado, seta a hora de chegada do caminhão,
+        A placa do veículo e o número do lacre caso existam
+        campos em branco, informação não é alterada."""
 
         form = None
         action_name = 'set_chegada'
 
         if 'apply' in request.POST:
-            form = UpdateDateForm(request.POST)
+            form = UpdateGradeForm(request.POST)
             if form.is_valid():
 
                 for c in queryset:
                     date = form.cleaned_data['data']
+                    grade = form.cleaned_data['grade']
                     placa = form.cleaned_data['ds_placa']
                     lacre = form.cleaned_data['nr_lacre']
-                    c.set_chegada(date, placa, lacre)
+                    c.set_chegada(date, grade, placa, lacre)
 
                     # adiciona evento no log
                     self.add_log_carregamento(request, queryset, c)
@@ -205,7 +206,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 self.message_user(request, "%s marcado(s) como caminhão na planta." % message_bit)
                 return HttpResponseRedirect(request.get_full_path())
         if not form:
-            form = UpdateDateForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+            form = UpdateGradeForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
         context = {
             'queryset': queryset,
             'form': form,
@@ -332,7 +333,8 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     list_display = ('id', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'business_unit','dt_saida', 'hr_grade',
                     'cliente', 'get_classe_cli', 'ds_transp', 'cd_rota', 'ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit',
-                       'ds_transp', 'cd_rota', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',)
+                       'ds_transp', 'cd_rota', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',
+                       'dt_hr_chegada', 'dt_hr_ini_carga', 'dt_hr_fim_carga', 'dt_hr_liberacao')
 
     fieldsets = (
         (None, {'fields':(

@@ -6,7 +6,7 @@ from sgo.models import OtifModel
 class Cliente(OtifModel):
     nm_ab_cli = models.CharField('Código do cliente', max_length=24, unique='true', )
     ds_classe_cli = models.CharField('Canal do cliente', max_length=30, null='true', blank='true', )
-    hr_lim_carga = models.TimeField('Limite de atraso de carregamento (hs)', null='true', blank='true', )
+    hr_lim_carga = models.TimeField('Limite de atraso na chegada do caminhão (hs)', null='true', blank='true', )
     hr_lim_lib = models.TimeField('Limite de atraso de liberação (hs)', null='true', blank='true', )
 
     class Meta:
