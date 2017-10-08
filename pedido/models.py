@@ -112,6 +112,18 @@ class Carregamento(BusinessUnitSpecificModel):
         if grade: self.hr_grade = grade
         if placa: self.ds_placa = placa
         if lacre: self.nr_lacre = lacre
+
+        # Se ainda não foi setada data e hora de chegada, colocar a data atual
+        if not self.dt_hr_chegada: self.dt_hr_chegada = datetime.datetime.now().replace(microsecond=0)
+
+        # Se ainda não foi setada data de previsão colocar a data de chegada
+        if not self.dt_saida: self.dt_saida = datetime.datetime.strptime(str(self.dt_hr_chegada),
+                                                                         "%Y-%m-%d %H:%M:%S").date()
+
+        # Se ainda não foi setada hora de grade, colocar hora de chegada sem microsegundos
+        if not self.hr_grade: self.hr_grade = datetime.datetime.strptime(str(self.dt_hr_chegada),
+                                                                         "%Y-%m-%d %H:%M:%S").time().replace(microsecond=0)
+
         self.ds_status_carrega = self.NA_PLANTA
         self.ds_status_cheg=self.get_status_cheg()
         self.save()
@@ -131,9 +143,14 @@ class Carregamento(BusinessUnitSpecificModel):
         self.save()
 
     def set_libera(self, date, placa, lacre):
+
         if date: self.dt_hr_liberacao = date
         if placa: self.ds_placa = placa
         if lacre: self.nr_lacre = lacre
+
+        # Se ainda não foi setada data e hora de liberação, colocar a data atual
+        if not self.dt_hr_liberacao: self.dt_hr_liberacao = datetime.datetime.now().replace(microsecond=0)
+
         self.ds_status_carrega = self.LIBERADO
         self.ds_status_lib=self.get_status_lib()
         self.save()
@@ -141,19 +158,13 @@ class Carregamento(BusinessUnitSpecificModel):
     def get_status_cheg(self):
         """Calculado(Se Hr de chegada > (data e Hr Grade - Limite carga da tabela ARZ_LIMITE_CLIENTE) então "Atrasado"
         senão "No Horário")"""
-        # se não está programada a data ou hora do pedido, é inserido automaticamente a data e hora atuais como plano
-        if not self.hr_grade:
-            hr_grade = datetime.datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
-        else:
-            hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
 
-        if not self.dt_saida: #data programada
-            dt_saida = datetime.datetime.now().date()
-        else:
-            dt_saida = datetime.datetime.strptime(str(self.dt_saida), "%Y-%m-%d")
+        hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
+
+        #data programada
+        dt_saida = datetime.datetime.strptime(str(self.dt_saida), "%Y-%m-%d").date()
 
         dt_previsao = (datetime.datetime.combine(dt_saida, hr_grade))
-
         # baseado no limite de carregamento do cliente, calcula a data/hora máxima para não ser considerado atraso
         # Se não foi cadastrado limite para o carregamento, considera 0
         try:
@@ -172,16 +183,10 @@ class Carregamento(BusinessUnitSpecificModel):
     def get_status_lib(self):
         """Calculado(Se Hr de liberação > (data e Hr Grade + Limite liberação da tabela ARZ_LIMITE_CLIENTE) então
         "Atrasado" senão "No Horário")"""
-        # se não está programada a data ou hora do pedido, é inserido automaticamente a data e hora atuais como plano
-        if not self.hr_grade:
-            hr_grade = datetime.datetime.time(datetime.datetime.now().time().hour, datetime.datetime.now().time().minute)
-        else:
-            hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
+        hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
 
-        if not self.dt_saida: #data programada
-            dt_saida = datetime.datetime.now().date()
-        else:
-            dt_saida = datetime.datetime.strptime(str(self.dt_saida), "%Y-%m-%d")
+        #data programada
+        dt_saida = datetime.datetime.strptime(str(self.dt_saida), "%Y-%m-%d").date()
 
         dt_previsao = (datetime.datetime.combine(dt_saida, hr_grade))
         # baseado no limite do cliente, calcula a data/hora máxima para não ser considerado atraso

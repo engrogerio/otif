@@ -4,6 +4,7 @@ from django.test import TestCase
 from pedido.models import Carregamento
 from cliente.models import Cliente
 from business_unit.models import BusinessUnit
+import datetime
 
 class CarregamentoStatusTestCase(TestCase):
 
@@ -11,7 +12,7 @@ class CarregamentoStatusTestCase(TestCase):
         """Cria uma unidade, um cliente e um carregamento para os testes"""
         BusinessUnit.objects.create(
             cd_unit ='01',
-            unit = 'TATUI')
+            unit = 'JDF')
 
         Cliente.objects.create(
             nm_ab_cli='FFJDI',
@@ -42,6 +43,32 @@ class CarregamentoStatusTestCase(TestCase):
             id_no_show = Carregamento.SIM,
             pallets = '3 4',
             cd_rota = '1')
+
+        Carregamento.objects.create(
+            business_unit = BusinessUnit.objects.get(cd_unit='01'),
+            cliente = Cliente.objects.get(nm_ab_cli='FFJDI'),
+            nr_nota_fis = '11',
+            nr_pedido = 1111,
+            ds_ord_compra = 6666,
+            dt_saida = None,
+            hr_grade =  None,
+            ds_placa = 'XXX9999',
+            ds_transp = 'VAILONGETRANSP',
+            nr_lacre = '666',
+            dt_hr_chegada = None,
+            dt_hr_ini_carga = None,
+            dt_hr_fim_carga = None,
+            dt_hr_liberacao = None,
+            ds_status_carrega = 0,
+            ds_status_cheg = '',  # a calcular
+            ds_status_lib = '',  # a calcularcarregamento
+            qt_pallet = 3,
+            ds_obs_carga = 'Teste automatico 2',
+            id_no_show = Carregamento.SIM,
+            pallets = '1, 2, 3',
+            cd_rota = '5')
+
+
 
     def test_alteracao_status(self):
         """ Alteração de Status do carregamento deve alterar o campo de status corretamente"""
@@ -112,3 +139,37 @@ class CarregamentoStatusTestCase(TestCase):
         c1.set_libera(date='2017-01-01 13:00:01', placa='1111', lacre='1111', )
         self.assertEqual(c1.get_status_lib(), 'Atrasado')
 
+    """
+    Para chegada do caminhão, temos a data de previsão (dt_saida), a grade(hr_grade) e a data e hora efetiva
+     de chegada (dt_hr_chegada)
+     Temos que testar na chegada:
+        1- Chegada já tem data e hora prevista
+        2- Chegada já tem data prevista, mas não hora
+        3- Chegada já tem hora previsa, mas não data
+        4- Chegada não tem nem hora nem data prevista
+        5- Para cada caso, testar passando data e hora e sem passar data e hora (usar atual)
+    """
+    def test_chegada_sem_data_previsao_passando_data_chegada(self):
+        """Chegada sem data de previsão, deve trazer o dia de chegada como previsão"""
+        c1 = Carregamento.objects.get(nr_nota_fis='11')
+        c1.set_chegada(date='2017-02-02 12:00:00', grade='22:00:00', placa='1111', lacre='1111', )
+        self.assertEqual(c1.dt_saida,datetime.datetime(2017,2,2).date())
+
+    def test_chegada_sem_data_previsao_sem_data_chegada(self):
+        """Chegada sem data de previsão e sem data de chegada, deve trazer o dia atual como previsão"""
+        c1 = Carregamento.objects.get(nr_nota_fis='11')
+        c1.set_chegada(date=None, grade='22:00:00', placa='1111', lacre='1111', )
+        self.assertEqual(c1.dt_saida, datetime.datetime.now().date())
+
+    def test_chegada_sem_grade(self):
+        """Chegada em carregamento sem grade, deve trazer a hora de chegada como grade"""
+        c1 = Carregamento.objects.get(nr_nota_fis='11')
+        c1.dt_saida='2017-02-02'
+        c1.set_chegada(date='2017-02-02 12:00:00', grade=None, placa='1111', lacre='1111', )
+        self.assertEqual(c1.hr_grade, datetime.datetime.strptime(c1.dt_hr_chegada, "%Y-%m-%d %H:%M:%S").time())
+
+    def test_chegada_sem_grade_sem_data(self):
+        """Chegada em carregamento sem data e hora de chegada, deve trazer a hora atual como data e hora de chegada"""
+        c1 = Carregamento.objects.get(nr_nota_fis='11')
+        c1.set_chegada(date=None, grade=None, placa='1111', lacre='1111', )
+        self.assertEqual(c1.dt_hr_chegada, datetime.datetime.now().replace(microsecond=0))
