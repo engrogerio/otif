@@ -107,6 +107,10 @@ class Carregamento(BusinessUnitSpecificModel):
     def __unicode__(self):
         return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
 
+    def add_motivo_atraso(self, motivo, ds_obs):
+        m = MotivosAtrasoCarregamento.objects.create(carregamento=self, motivo=motivo, ds_obs=ds_obs)
+        m.save()
+
     def set_chegada(self, date, grade, placa, lacre):
         if date: self.dt_hr_chegada = date
         if grade: self.hr_grade = grade
@@ -204,6 +208,16 @@ class Carregamento(BusinessUnitSpecificModel):
         else:
             return "No Horário"
 
+class MotivosAtrasoCarregamento(BusinessUnitSpecificModel):
+    
+    carregamento = models.ForeignKey(Carregamento, verbose_name='Carregamento', blank='true', null='true', 
+        related_name='carregamento_motivo')
+    motivo = models.ForeignKey(Motivo, verbose_name='Motivo do Atraso', blank='true', null='true', 
+        related_name='motivo_atraso')
+    ds_obs = models.CharField('Observação', max_length=300, blank='true', null='true', )
+
+    def __unicode__(self):
+        return self.motivo.ds_motivo
 
 class Item(BusinessUnitSpecificModel):
 

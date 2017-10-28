@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.admin.models import ContentType
 from django.contrib.admin.models import LogEntry, CHANGE
 from django.forms import TextInput, Textarea
-from pedido.models import Carregamento, Item
+from pedido.models import Carregamento, Item, MotivosAtrasoCarregamento
 from grade.models import Grade
 from django import forms
 from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
@@ -13,7 +13,7 @@ from django.forms.models import BaseInlineFormSet
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from pedido.forms import UpdateDateForm, UpdateGradeForm
+from pedido.forms import UpdateDateForm, UpdateGradeForm, AddMotivoCarregamentoForm
 
 
 class PalletWidget(forms.MultiWidget):
@@ -119,17 +119,23 @@ class ItemInlineFormSet(BaseInlineFormSet):
         if form: return form.cleaned_data
 
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
+class MotivosAtrasoCarregamentoInline(admin.TabularInline):
+    model = MotivosAtrasoCarregamento
+    extra = 0
+    fields = ['motivo',]
 
+    def is_readonly(self):
+       return False
 
-class ItemInline(SgoTabularInlineAdmin):
+class ItemInline(admin.TabularInline):
     model = Item
     formset = ItemInlineFormSet
     extra = 0
     fields = ['cd_produto','un_embalagem','qt_embalagem','qt_pilha','qt_falta',
-              'qt_carregada', 'motivo']
+             'qt_carregada', 'motivo']
     readonly_fields = ['cd_produto','un_embalagem','qt_embalagem','qt_pilha',
-                       'qt_falta', ]
-
+                      'qt_falta', ]
+    
     def has_add_permission(self, request):
         return False
 
@@ -156,7 +162,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     form = PedidoCarregamentoAdminForm
     template_name = 'pedido/add_date.html'
-    actions=['set_chegada', 'set_inicio', 'set_fim', 'set_libera']
+    actions=['set_chegada', 'set_inicio', 'set_fim', 'set_libera', 'add_motivo_atraso']
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -173,6 +179,46 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             object_repr=''.join([obj.cliente.nm_ab_cli, obj.nr_nota_fis]),
             action_flag=CHANGE,  # actions_flag --> action_flag
             change_message='Modificado Status para ' + obj.STATUS[obj.ds_status_carrega][1])
+
+    def add_motivo_atraso(self, request, queryset):
+        """ Para cada carregamento selecionado, adiciona um motivo de atraso do caminhão,
+        e um comentário para o motivo quando necessário.
+        """
+        template_name = 'pedido/add_motivo.html'
+        form = None
+        action_name = 'add_motivo_atraso'
+
+        if 'apply' in request.POST:
+            form = AddMotivoCarregamentoForm(request.POST)
+            if form.is_valid():
+
+                for c in queryset:
+                    motivo = form.cleaned_data['motivo']
+                    ds_obs = form.cleaned_data['ds_obs']
+                    c.add_motivo_atraso(motivo, ds_obs)
+
+                    # adiciona evento no log
+                    self.add_log_carregamento(request, queryset, c)
+                    # save event
+                    c.save()
+                rows_updated = queryset.count()
+
+                if rows_updated == 1:
+                    message_bit = "1 carregamento foi"
+                else:
+                    message_bit = "%s carregamentos foram" % rows_updated
+                self.message_user(request, "%s adicionado(s) um motivo de atraso." % message_bit)
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = AddMotivoCarregamentoForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+        context = {
+            'queryset': queryset,
+            'form': form,
+            'action_name': action_name
+        }
+
+        return render(request, template_name, context)
+    add_motivo_atraso.short_description = 'Adicionar motivo de atraso'
 
     def set_chegada(self, request, queryset):
         """ Para cada carregamento selecionado, seta a hora de chegada do caminhão,
@@ -324,10 +370,14 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     def get_classe_cli(self,obj):
         return obj.cliente.ds_classe_cli
 
+
+    def carregamento_motivos(self):
+        pass 
+
     get_classe_cli.short_description = 'Canal Cliente'
     get_classe_cli.admin_order_field = 'cliente__ds_classe_cli'
 
-    inlines = [ ItemInline, ItemInline_ReadOnly, ]
+    inlines = [MotivosAtrasoCarregamentoInline, ItemInline, ItemInline_ReadOnly]
     verbose_name = ('Pedido')
 
     list_display = ('id', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'business_unit','dt_saida', 'hr_grade',
@@ -351,7 +401,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         })
     )
     list_filter = (('dt_saida', DateRangeFilter), 'business_unit', 'ds_status_carrega', 'cd_rota','cliente__ds_classe_cli',
-                   'ds_transp')
+                   'ds_transp', 'carregamento_motivo__motivo')
 
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {

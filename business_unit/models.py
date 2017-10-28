@@ -25,7 +25,7 @@ class BusinessUnitSpecificModel(models.Model):
     models.Model directly. So all models inheriting from BusinessUnitSpecificModel
     will always have transactions related to an specific business unit
     """
-    business_unit=models.ForeignKey(BusinessUnit, verbose_name='Cód. Estab.',
+    business_unit = models.ForeignKey(BusinessUnit, verbose_name='Cód. Estab.',
         null='true', blank='true',)
 
     class Meta:

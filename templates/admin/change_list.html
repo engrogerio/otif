@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  <!--  https://bitbucket.org/Stanislas/django-foldable-list-filter/src -->
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/foldable-list-filter.css" %}" />
 <img src="{% static "sgo/img/AryztaLogo.gif" %}"/>
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
   {% if cl.formset %}
@@ -21,6 +23,9 @@
 
 {% block extrahead %}
 {{ block.super }}
+<script type="text/javascript" src="{% static "admin/js/jquery-1.x.y.min.js" %}"></script>
+<script type="text/javascript" src="{% static "admin/js/foldable-list-filter.js" %}"></script>
+<script type="text/javascript" src="{% static "admin/js/jquery.cookie.js" %}"></script>
 {{ media.js }}
 {% if action_form %}{% if actions_on_top or actions_on_bottom %}
 <script type="text/javascript">

@@ -76,14 +76,14 @@ class SgoModelAdmin(admin.ModelAdmin):
                     continue
                 else:
                     yield inline.get_formset(request, obj), inline
-                    break
+                    #break
             else:
             # hide Editable Inline when user has view permission
                 if not inline.is_readonly():
                     continue
                 else:
                     yield inline.get_formset(request, obj), inline
-                    break
+                    #break
 
 #Thanks http://www.ibm.com/developerworks/library/os-django-admin/
     """
