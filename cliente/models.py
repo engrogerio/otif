@@ -7,7 +7,7 @@ from sgo.models import OtifModel
 
 class Grupo(OtifModel):
     nm_grupo = models.IntegerField('Código do Grupo', null='true', blank='true',)
-    cliente = models.ManyToManyField('Cliente', null='true', blank='true',)
+    cliente = models.ManyToManyField('Cliente', null='true', blank='true', related_name='cliente_grupos')
 
     class Meta:
         verbose_name_plural = "Grupos de Cliente"
@@ -31,8 +31,8 @@ class Cliente(OtifModel):
 
 
 class PreCarregamento(OtifModel):
-    grupo = models.ManyToManyField(Grupo, null='true', blank='true',)
+    grupo = models.ManyToManyField(Grupo, null='true', blank='true', related_name='grupos_pre_carregamento')
 
-    def __str__(self):
-        return  "Grupos com Pré-Carregamento"
+    # def __unicode__(self):
+    #     return  "Grupos com Pré-Carregamento"
     

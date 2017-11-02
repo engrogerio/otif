@@ -3,7 +3,7 @@
 from django.db import models
 from sgo.models import OtifModel
 from grade.models import Grade
-from cliente.models import Cliente
+from cliente.models import Cliente, PreCarregamento
 import datetime, time
 from falta.models import Motivo
 from business_unit.models import BusinessUnitSpecificModel
@@ -132,11 +132,21 @@ class Carregamento(BusinessUnitSpecificModel):
         self.ds_status_cheg=self.get_status_cheg()
         self.save()
 
-    def set_inicio(self, date, placa, lacre):
+    def set_inicio(self, date, placa, lacre, is_pre_carregamento):
         if date: self.dt_hr_ini_carga = date
         if placa: self.ds_placa = placa
         if lacre: self.nr_lacre = lacre
+        # Se o cliente estiver no grupo de pré carregamento, a quantidade carregada de cada ítem, 
+        # deve ser igual a quantidade de embalagens a carregar do mesmo ítem somente se ainda não
+        # foi preenchido nada no campo de quantidade carregada.
+        if is_pre_carregamento:
+            items = self.carregamento_items.all()
+            for item in items:
+                if item.qt_carregada == 0:
+                    item.qt_carregada = item.qt_embalagem
+                item.save()
         self.ds_status_carrega = self.INICIO
+
         self.save()
 
     def set_fim(self, date, placa, lacre):
@@ -161,7 +171,8 @@ class Carregamento(BusinessUnitSpecificModel):
 
     def get_status_cheg(self):
         """Calculado(Se Hr de chegada > (data e Hr Grade - Limite carga da tabela ARZ_LIMITE_CLIENTE) então "Atrasado"
-        senão "No Horário")"""
+        senão "No Horário")
+        """
 
         hr_grade = datetime.datetime.strptime(str(self.hr_grade), "%H:%M:%S").time()
 
@@ -226,7 +237,7 @@ class Item(BusinessUnitSpecificModel):
     un_embalagem = models.CharField('Unidade de embalagem', max_length=3, null='true', blank='true', )
     qt_embalagem = models.IntegerField('Quantidade de embalagens', default=0, )
     qt_pilha = models.CharField('Pilhas', max_length=10, null='true', blank='true', )
-    qt_carregada = models.IntegerField('Quantidade carregada', default=0, )
+    qt_carregada = models.IntegerField('Quantidade carregada', default=0,)
     # qt_falta = models.IntegerField('Quantidade em falta', null='true', blank='true', )
     motivo = models.ForeignKey(Motivo, null='true', blank='true', )
     carregamento = models.ForeignKey(Carregamento, related_name='carregamento_items')
@@ -237,7 +248,10 @@ class Item(BusinessUnitSpecificModel):
 
     def __unicode__(self):
         return self.ds_produto or ''
-
+    
+    def pre_carregamento(self):
+         if self.qt_carregada == 0:
+                self.qt_carregada = self.qt_embalagem
 #
 # class Pallet(models.Model):
 #     carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')

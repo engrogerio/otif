@@ -14,7 +14,7 @@ from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from pedido.forms import UpdateDateForm, UpdateGradeForm, AddMotivoCarregamentoForm
-
+from cliente.models import PreCarregamento
 
 class PalletWidget(forms.MultiWidget):
 
@@ -273,7 +273,14 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                     date = form.cleaned_data['data']
                     placa = form.cleaned_data['ds_placa']
                     lacre = form.cleaned_data['nr_lacre']
-                    c.set_inicio(date, placa, lacre)
+                    # se o grupo do cliente estiver no grupo de pré-carregamento...
+                    try:
+                        grupos_pre_carregamento = c.cliente.cliente_grupos.first().grupos_pre_carregamento.first().grupo.all()
+                        is_precarregamento = c.cliente.cliente_grupos.first() in grupos_pre_carregamento
+                    except:
+                        is_precarregamento = False
+
+                    c.set_inicio(date, placa, lacre, is_precarregamento)
                     # adiciona evento no log
                     self.add_log_carregamento(request, queryset, c)
                     # save event
@@ -369,10 +376,6 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     def get_classe_cli(self,obj):
         return obj.cliente.ds_classe_cli
-
-
-    def carregamento_motivos(self):
-        pass 
 
     get_classe_cli.short_description = 'Canal Cliente'
     get_classe_cli.admin_order_field = 'cliente__ds_classe_cli'
