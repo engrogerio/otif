@@ -104,7 +104,7 @@ class Carregamento(BusinessUnitSpecificModel):
     dt_hr_ini_carga = models.DateTimeField('Inicio do carregamento', null='true', blank='true', )
     dt_hr_fim_carga = models.DateTimeField('Fim do carregamento', null='true', blank='true', )
     dt_hr_liberacao = models.DateTimeField('Liberação do caminhão', null='true', blank='true', )
-    ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=PROGRAMADO, 
+    ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=SEM_PROGRAMACAO, 
                                             null='true', blank='true')
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
@@ -132,7 +132,12 @@ class Carregamento(BusinessUnitSpecificModel):
                                              max_length=15, null='true', blank='true')
     
     def __unicode__(self):
-        return '' or ''.join([self.cliente.nm_ab_cli, '' or self.nr_nota_fis])
+        if self.nr_nota_fis: 
+            nf =  self.nr_nota_fis
+        else:
+            nf = ''
+        return ''.join([self.cliente.nm_ab_cli, nf])
+
 
     def set_agenda(self, data, motivo, protocolo, obs):
         if data: self.dt_hr_agenda = data

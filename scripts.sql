@@ -32,3 +32,6 @@ where not exists(
                  and carregamento_id = pc.id
                  );
 commit
+
+--fix carregamento statuses to add new status : Sem programação - 18/11/2017
+update pedido_carregamento set ds_status_carrega = ds_status_carrega+1
