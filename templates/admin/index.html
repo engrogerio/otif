@@ -51,7 +51,7 @@
                 {% if model.name  == "Grades" %}
                    <i class="fa fa-calendar fa-3x" title=""></i>
                 {% endif %}
-                {% if model.name  == "Multa carregamentos" %}
+                {% if model.name  == "Motivos de atraso de carregamento" %}
                    <i class="fa fa-thumbs-o-down fa-3x"></i>
                 {% endif %}
                 {% if model.name  == "Multa items" %}
@@ -69,7 +69,7 @@
                 {% if model.name  == "No shows" %}
                    <i class="fa fa-calendar-times-o fa-3x"></i>
                 {% endif %}
-                {% if model.name  == "Motivos" %}
+                {% if model.name  == "Motivos de falta" %}
                    <i class="fa fa-list fa-3x"></i>
                 {% endif %}
                 {% if model.name  == "Queries" %}
@@ -81,6 +81,10 @@
                 {% if model.name  == "Pre carregamentos" %}
                     <i class="fa fa-gift fa-3x"></i>
                 {% endif %}
+                {% if model.name  == "Motivos de alteração da agenda" %}
+                <i class="fa fa-calendar-times-o fa-3x"></i>
+                {% endif %}
+                
             {{ model.name }}</a></th>
             
             {% endif %}

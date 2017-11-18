@@ -33,6 +33,6 @@ class Cliente(OtifModel):
 class PreCarregamento(OtifModel):
     grupo = models.ManyToManyField(Grupo, null='true', blank='true', related_name='grupos_pre_carregamento')
 
-    # def __unicode__(self):
-    #     return  "Grupos com Pré-Carregamento"
+    def __unicode__(self):
+        return  "Grupos de pre-carregamento"
     

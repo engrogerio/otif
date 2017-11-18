@@ -5,7 +5,7 @@ from sgo.models import OtifModel
 from grade.models import Grade
 from cliente.models import Cliente, PreCarregamento
 import datetime, time
-from falta.models import Motivo
+from falta.models import Motivo, MotivoDeAlteracaoDaAgenda, MotivoAtraso
 from business_unit.models import BusinessUnitSpecificModel
 
 # TODO: Atualizar a documentação
@@ -59,21 +59,30 @@ Aplicação: Pedido
                             multa" * 0,05)+"vl_fixo") senão, 0)
 """
 
-
-
 class Carregamento(BusinessUnitSpecificModel):
+    class Meta:
+        permissions = (
+            ("can_schedule", "Pode Agendar Pedidos"),
+            ("can_load", "Pode Carregar"),
+        )
 
-    PROGRAMADO = 0
-    NA_PLANTA = 1
-    INICIO = 2
-    FIM = 3
-    LIBERADO = 4
+    SEM_PROGRAMACAO = 0    
+    PROGRAMADO = 1
+    NA_PLANTA = 2
+    INICIO = 3
+    FIM = 4
+    LIBERADO = 5
+    NO_CLIENTE = 6
+    DESCARREGADO = 7
     STATUS=(
-        (PROGRAMADO,'Carregamento programado'),
-        (NA_PLANTA,'Caminhão na planta'),
+        (SEM_PROGRAMACAO, 'Carregamento sem programação'),
+        (PROGRAMADO, 'Carregamento programado'),
+        (NA_PLANTA, 'Caminhão na planta'),
         (INICIO, 'Carregamento iniciado'),
         (FIM, 'Carregamento finalizado'),
-        (LIBERADO, 'Caminhão liberado')
+        (LIBERADO, 'Caminhão liberado'),
+        (NO_CLIENTE, 'Caminhão no cliente'),
+        (DESCARREGADO, 'Pedido entregue')
     )
 
     SIM=1
@@ -95,7 +104,8 @@ class Carregamento(BusinessUnitSpecificModel):
     dt_hr_ini_carga = models.DateTimeField('Inicio do carregamento', null='true', blank='true', )
     dt_hr_fim_carga = models.DateTimeField('Fim do carregamento', null='true', blank='true', )
     dt_hr_liberacao = models.DateTimeField('Liberação do caminhão', null='true', blank='true', )
-    ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=PROGRAMADO, null='true', blank='true')
+    ds_status_carrega = models.IntegerField('Status', choices=STATUS, default=PROGRAMADO, 
+                                            null='true', blank='true')
     ds_status_cheg = models.CharField('Status de chegada', max_length=15, null='true', blank='true')
     ds_status_lib = models.CharField('Status de liberação', max_length=15, null='true', blank='true')
     qt_pallet = models.IntegerField('Quantidade de Pallets', default=0, )
@@ -103,13 +113,45 @@ class Carregamento(BusinessUnitSpecificModel):
     id_no_show = models.IntegerField('No Show', choices= NO_SHOW, null='true', blank='true',)
     pallets = models.CharField('Pallets', max_length=1000, null='true', blank='true',)
     cd_rota = models.CharField('Rota', max_length=10, null= 'true', blank='true')
-
+    
+    motivo_atraso = models.ForeignKey(MotivoAtraso, verbose_name='Motivo do Atraso', 
+                                    blank='true', null='true', related_name='motivo_atraso')
+    ds_obs_atraso = models.CharField('Observação Atraso', max_length=300, blank='true', null='true', )
+    
+    # campos agendamento
+    tipo_frete = models.CharField('Frete', max_length = 5, null='true',blank='true')
+    dt_hr_agenda = models.DateTimeField('Agendamento da entrega', null='true', blank='true', )
+    dt_hr_cheg_cliente = models.DateTimeField('Chegada no cliente', null='true', blank='true', )
+    dt_hr_descarrega = models.DateTimeField('Descarregamento', null='true', blank='true', )
+    motivo_altera_agenda = models.ForeignKey(MotivoDeAlteracaoDaAgenda, 
+                                            verbose_name='Motivo da alteração da agenda', 
+                                            null='true', blank='true', )
+    protocolo_agenda = models.CharField('Protocolo do agendamento', max_length=100, null='true', blank='true', )
+    ds_obs_agenda = models.CharField('Obs', max_length=500, null='true', blank='true', )
+    ds_status_cheg_cliente = models.CharField('Status de chegada no cliente',
+                                             max_length=15, null='true', blank='true')
+    
     def __unicode__(self):
-        return '' or ''.join([self.cliente.nm_ab_cli, self.nr_nota_fis])
+        return '' or ''.join([self.cliente.nm_ab_cli, '' or self.nr_nota_fis])
 
-    def add_motivo_atraso(self, motivo, ds_obs):
-        m = MotivosAtrasoCarregamento.objects.create(carregamento=self, motivo=motivo, ds_obs=ds_obs)
-        m.save()
+    def set_agenda(self, data, motivo, protocolo, obs):
+        if data: self.dt_hr_agenda = data
+        if motivo: self.motivo_altera_agenda = motivo
+        if protocolo: self.protocolo_agenda = protocolo
+        if obs:self.ds_obs_agenda = obs
+
+        # Se o frete for CIF, e a data/hora de chegada no cliente 
+        # for posterior à data/hora de agendamento, o status deverá ser em atraso.
+        if self.dt_hr_cheg_cliente and self.dt_hr_agenda:
+            if self.tipo_frete == 'CIF' and self.dt_hr_cheg_cliente > self.dt_hr_agenda:
+                    self.ds_status_cheg_cliente = 'Atrasado'
+            else:
+                self.ds_status_cheg_cliente = 'No Horário'
+        else:
+            self.ds_status_cheg_cliente = '-'
+
+        self.ds_status_carrega = self.PROGRAMADO
+        self.save()
 
     def set_chegada(self, date, grade, placa, lacre):
         if date: self.dt_hr_chegada = date
@@ -218,17 +260,12 @@ class Carregamento(BusinessUnitSpecificModel):
             return "Atrasado"
         else:
             return "No Horário"
-
-class MotivosAtrasoCarregamento(BusinessUnitSpecificModel):
     
-    carregamento = models.ForeignKey(Carregamento, verbose_name='Carregamento', blank='true', null='true', 
-        related_name='carregamento_motivo')
-    motivo = models.ForeignKey(Motivo, verbose_name='Motivo do Atraso', blank='true', null='true', 
-        related_name='motivo_atraso')
-    ds_obs = models.CharField('Observação', max_length=300, blank='true', null='true', )
+    def add_motivo_atraso(self, motivo, ds_obs):
+        if motivo: self.motivo_atraso = motivo
+        if ds_obs: self.ds_obs_atraso = ds_obs
+        self.save()
 
-    def __unicode__(self):
-        return self.motivo.ds_motivo
 
 class Item(BusinessUnitSpecificModel):
 
@@ -252,12 +289,6 @@ class Item(BusinessUnitSpecificModel):
     def pre_carregamento(self):
          if self.qt_carregada == 0:
                 self.qt_carregada = self.qt_embalagem
-#
-# class Pallet(models.Model):
-#     carregamento = models.ForeignKey(Carregamento, null='true', blank='true', related_name='carregamento_pallet')
-#     nr_pallet = models.IntegerField('Nr. Pallet',  null='true', blank='true')
-#     def __unicode__(self):
-#         return self.nr_pallet
 
 
 class FillRate(Item):

@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.admin.models import ContentType
 from django.contrib.admin.models import LogEntry, CHANGE
 from django.forms import TextInput, Textarea
-from pedido.models import Carregamento, Item, MotivosAtrasoCarregamento
+from pedido.models import Carregamento, Item
 from grade.models import Grade
 from django import forms
 from sgo.admin import SgoModelAdmin, SgoTabularInlineAdmin
@@ -13,8 +13,9 @@ from django.forms.models import BaseInlineFormSet
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from pedido.forms import UpdateDateForm, UpdateGradeForm, AddMotivoCarregamentoForm
+from pedido.forms import UpdateDateForm, UpdateGradeForm, AddMotivoAtrasoCarregamentoForm, AddAgendamentoForm
 from cliente.models import PreCarregamento
+from falta.models import MotivoAtraso, MotivoDeAlteracaoDaAgenda
 
 class PalletWidget(forms.MultiWidget):
 
@@ -51,7 +52,12 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
             'ds_obs_carga': Textarea(attrs={'rows': 4, 'cols': 30}),
         }
 
-    grade = forms.ModelChoiceField(label='Grade do Cliente',queryset=Grade.objects.all(), required=False,)
+    grade = forms.ModelChoiceField(label='Grade do Cliente',queryset=Grade.objects.all(), 
+                                required=False,)
+    motivo_atraso = forms.ModelChoiceField(label='Motivo do atraso',queryset=MotivoAtraso.objects.all(), 
+                                required=False,)
+    motivo_altera_agenda = forms.ModelChoiceField(label='Motivo da alteração da agenda',
+                                queryset=MotivoDeAlteracaoDaAgenda.objects.all(), required=False,)
 
     def __init__(self, *args, **kwargs):
         super(PedidoCarregamentoAdminForm, self).__init__(*args, **kwargs)
@@ -92,7 +98,6 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         return instance
 
 
-
 class ItemInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
@@ -119,15 +124,8 @@ class ItemInlineFormSet(BaseInlineFormSet):
         if form: return form.cleaned_data
 
 # São necessários 2 classes para o mesmo inline devido a permissão de somente leitura
-class MotivosAtrasoCarregamentoInline(admin.TabularInline):
-    model = MotivosAtrasoCarregamento
-    extra = 0
-    fields = ['motivo',]
 
-    def is_readonly(self):
-       return False
-
-class ItemInline(admin.TabularInline):
+class ItemInline(SgoTabularInlineAdmin):
     model = Item
     formset = ItemInlineFormSet
     extra = 0
@@ -161,8 +159,20 @@ class ItemInline_ReadOnly(ItemInline):
 class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     form = PedidoCarregamentoAdminForm
-    template_name = 'pedido/add_date.html'
-    actions=['set_chegada', 'set_inicio', 'set_fim', 'set_libera', 'add_motivo_atraso']
+    template_name = 'pedido/add_agenda.html'
+
+    def get_actions(self, request):
+        
+        actions = super(PedidoCarregamentoAdmin, self).get_actions(request)
+        for a in actions:
+            del a
+        
+        if request.user.has_perm('pedido.can_load') or request.user.is_superuser:
+            self.actions.extend(('set_chegada', 'set_inicio', 
+                'set_fim', 'set_libera', 'add_motivo_atraso'))
+        if request.user.has_perm('pedido.can_schedule') or request.user.is_superuser:
+            self.actions.append('set_agenda')
+        return actions
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -180,8 +190,50 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             action_flag=CHANGE,  # actions_flag --> action_flag
             change_message='Modificado Status para ' + obj.STATUS[obj.ds_status_carrega][1])
 
+    def set_agenda(self, request, queryset):
+        """ Para cada carregamento selecionado, seta o agendamento da entrega.
+        """
+
+        form = None
+        action_name = 'set_agenda'
+
+        if 'apply' in request.POST:
+            form = AddAgendamentoForm(request.POST) 
+            if form.is_valid():
+
+                for c in queryset:
+                    # tipo = form.cleaned_data['tipo_frete']
+                    data = form.cleaned_data['data']
+                    motivo = form.cleaned_data['motivo']
+                    protocolo = form.cleaned_data['protocolo']
+                    obs = form.cleaned_data['obs']
+                    c.set_agenda(data, motivo, protocolo, obs)
+
+                    # adiciona evento no log
+                    self.add_log_carregamento(request, queryset, c)
+                    # save event
+                    c.save()
+                rows_updated = queryset.count()
+
+                if rows_updated == 1:
+                    message_bit = "1 carregamento foi"
+                else:
+                    message_bit = "%s carregamentos foram" % rows_updated
+                self.message_user(request, "%s agendado(s)." % message_bit)
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = AddAgendamentoForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),})
+        context = {
+            'queryset': queryset,
+            'form': form,
+            'action_name': action_name,
+        }
+
+        return render(request, self.template_name, context)
+    set_agenda.short_description = 'Agendar data de entrega'
+
     def add_motivo_atraso(self, request, queryset):
-        """ Para cada carregamento selecionado, adiciona um motivo de atraso do caminhão,
+        """ Para cada carregamento selecionado, altera o motivo de atraso do carregamento,
         e um comentário para o motivo quando necessário.
         """
         template_name = 'pedido/add_motivo.html'
@@ -189,7 +241,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
         action_name = 'add_motivo_atraso'
 
         if 'apply' in request.POST:
-            form = AddMotivoCarregamentoForm(request.POST)
+            form = AddMotivoAtrasoCarregamentoForm(request.POST)
             if form.is_valid():
 
                 for c in queryset:
@@ -210,7 +262,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                 self.message_user(request, "%s adicionado(s) um motivo de atraso." % message_bit)
                 return HttpResponseRedirect(request.get_full_path())
         if not form:
-            form = AddMotivoCarregamentoForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+            form = AddMotivoAtrasoCarregamentoForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
         context = {
             'queryset': queryset,
             'form': form,
@@ -380,31 +432,35 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     get_classe_cli.short_description = 'Canal Cliente'
     get_classe_cli.admin_order_field = 'cliente__ds_classe_cli'
 
-    inlines = [MotivosAtrasoCarregamentoInline, ItemInline, ItemInline_ReadOnly]
+    inlines = [ItemInline, ItemInline_ReadOnly]
     verbose_name = ('Pedido')
 
     list_display = ('id', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra', 'business_unit','dt_saida', 'hr_grade',
                     'cliente', 'get_classe_cli', 'ds_transp', 'cd_rota', 'ds_status_cheg', 'ds_status_lib','ds_status_carrega' )
     readonly_fields = ('ds_status_cheg', 'ds_status_lib', 'cliente', 'ds_status_carrega', 'business_unit',
                        'ds_transp', 'cd_rota', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',
-                       'dt_hr_chegada', 'dt_hr_ini_carga', 'dt_hr_fim_carga', 'dt_hr_liberacao')
+                       'dt_hr_chegada', 'dt_hr_ini_carga', 'dt_hr_fim_carga', 'dt_hr_liberacao',
+                       'dt_hr_cheg_cliente', 'dt_hr_descarrega', 
+                       'dt_hr_agenda', 'ds_status_cheg_cliente', 'tipo_frete')
 
     fieldsets = (
         (None, {'fields':(
-                        ('business_unit','cliente','nr_nota_fis', 'nr_pedido', 'ds_ord_compra',),
-                        ('dt_saida','hr_grade', 'grade'),
-                        ('ds_transp', 'ds_placa','nr_lacre'),
-                        ('ds_status_carrega','ds_status_cheg','ds_status_lib',),
-                        ('ds_obs_carga','qt_pallet', 'pallets','cd_rota'),
+                        ('business_unit', 'cliente', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',),
+                        ('dt_saida', 'hr_grade', 'grade'),
+                        ('ds_transp', 'ds_placa', 'nr_lacre'),
+                        ('ds_status_carrega', 'ds_status_cheg', 'ds_status_lib', 'motivo_atraso', 'ds_obs_atraso'),
+                        ('ds_obs_carga', 'qt_pallet', 'pallets', 'cd_rota'),
+                        ('tipo_frete',  'ds_status_cheg_cliente', 'motivo_altera_agenda', 'protocolo_agenda', 'ds_obs_agenda',),
                         )
                 }),
         ('Acompanhamento do Carregamento',{
             'classes':('collapse',),
-                'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao'))
+                'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao', 
+                'dt_hr_agenda', 'dt_hr_cheg_cliente', 'dt_hr_descarrega'))
         })
     )
     list_filter = (('dt_saida', DateRangeFilter), 'business_unit', 'ds_status_carrega', 'cd_rota','cliente__ds_classe_cli',
-                   'ds_transp', 'carregamento_motivo__motivo')
+                   'ds_transp', 'motivo_atraso')
 
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {

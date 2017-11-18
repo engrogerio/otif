@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+    <form action="" method="post">{% csrf_token %}
+         <h2>Entre com os dados do agendamento do carregamento</h2>
+        <h4>(campos em branco não serão atualizados.)</h4>
+        {{ form.as_p }}
+
+        <input type="hidden" name="action" value="{{ action_name }}" />
+        <input type="submit" name="apply" value="Salvar" />
+
+    </form>
+{% endblock %}
