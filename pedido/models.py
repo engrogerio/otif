@@ -138,15 +138,13 @@ class Carregamento(BusinessUnitSpecificModel):
             nf = ''
         return ''.join([self.cliente.nm_ab_cli, nf])
 
-
-    def set_agenda(self, data, motivo, protocolo, obs):
-        if data: self.dt_hr_agenda = data
-        if motivo: self.motivo_altera_agenda = motivo
-        if protocolo: self.protocolo_agenda = protocolo
-        if obs:self.ds_obs_agenda = obs
-
-        # Se o frete for CIF, e a data/hora de chegada no cliente 
-        # for posterior à data/hora de agendamento, o status deverá ser em atraso.
+    def set_chega_cliente(self):
+        """
+        Se o frete for CIF, e a data/hora de chegada no cliente 
+        for posterior à data/hora de agendamento, o status deverá ser em atraso se não,
+        no horário.
+        """ 
+        
         if self.dt_hr_cheg_cliente and self.dt_hr_agenda:
             if self.tipo_frete == 'CIF' and self.dt_hr_cheg_cliente > self.dt_hr_agenda:
                     self.ds_status_cheg_cliente = 'Atrasado'
@@ -154,6 +152,19 @@ class Carregamento(BusinessUnitSpecificModel):
                 self.ds_status_cheg_cliente = 'No Horário'
         else:
             self.ds_status_cheg_cliente = '-'
+        
+        self.ds_status_carrega = self.NO_CLIENTE
+        self.save()
+
+    def set_descarregado(self):
+        self.ds_status_carrega = self.DESCARREGADO
+        self.save()
+
+    def set_agenda(self, data, motivo, protocolo, obs):
+        if data: self.dt_hr_agenda = data
+        if motivo: self.motivo_altera_agenda = motivo
+        if protocolo: self.protocolo_agenda = protocolo
+        if obs:self.ds_obs_agenda = obs
 
         self.ds_status_carrega = self.PROGRAMADO
         self.save()

@@ -83,6 +83,17 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
         grade_queryset = Grade.objects.filter(business_unit__unit=business_unit.unit).filter(dt_semana=dt_semana).filter(cliente_id=cliente).order_by('hr_grade')
         self.fields['grade'].queryset = grade_queryset
 
+        """
+        Se existe uma data de chegada no cliente mas não existe data de descarregamento,
+         automaticamente, seta status = NO_CLIENTE
+        Se existe uma data de descarregamento , automaticamente, seta status = DESCARREGADO
+        """ 
+        if self.instance.dt_hr_cheg_cliente:
+            if self.instance.dt_hr_descarrega:
+                self.instance.set_descarregado()
+            else:
+                self.instance.set_cheg_cliente()
+
     def save(self,commit=True):
 
         instance = super(PedidoCarregamentoAdminForm, self).save(commit=False)

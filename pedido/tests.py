@@ -35,14 +35,23 @@ class CarregamentoStatusTestCase(TestCase):
             dt_hr_ini_carga = None,
             dt_hr_fim_carga = None,
             dt_hr_liberacao = None,
-            ds_status_carrega = 0,
+            #ds_status_carrega = 0 default value
             ds_status_cheg = '',  # a calcular
             ds_status_lib = '',  # a calcularcarregamento
             qt_pallet = 2,
             ds_obs_carga = 'Teste automatico',
             id_no_show = Carregamento.SIM,
             pallets = '3 4',
-            cd_rota = '1')
+            cd_rota = '1',
+            
+            tipo_frete = 'CIF' ,
+            dt_hr_agenda = None,
+            dt_hr_cheg_cliente = None,
+            dt_hr_descarrega = None,
+            motivo_altera_agenda = None,
+            protocolo_agenda = 'TESTE AGENDAMENTO',
+            ds_obs_agenda = None,
+            )
 
         Carregamento.objects.create(
             business_unit = BusinessUnit.objects.get(cd_unit='01'),
@@ -59,26 +68,75 @@ class CarregamentoStatusTestCase(TestCase):
             dt_hr_ini_carga = None,
             dt_hr_fim_carga = None,
             dt_hr_liberacao = None,
-            ds_status_carrega = 0,
+            # ds_status_carrega = 0 Default value
             ds_status_cheg = '',  # a calcular
             ds_status_lib = '',  # a calcularcarregamento
             qt_pallet = 3,
             ds_obs_carga = 'Teste automatico 2',
             id_no_show = Carregamento.SIM,
             pallets = '1, 2, 3',
-            cd_rota = '5')
+            cd_rota = '5',
+            
+            tipo_frete = 'FOB',
+            dt_hr_agenda = None,
+            dt_hr_cheg_cliente = None,
+            dt_hr_descarrega = None,
+            motivo_altera_agenda = None,
+            protocolo_agenda = 'TESTE AGENDAMENTO',
+            ds_obs_agenda = None,
+            )
 
+    
+    def test_agenda_horario_fob(self):
+        """
+        Alteração de agenda deve retornar sempre "No horário" para carregamentos FOB
+        """
+        c1 = Carregamento.objects.get(nr_nota_fis='11')
+        c1.dt_hr_agenda ='2017-01-01 00:00:00'
+        c1.dt_hr_cheg_cliente ='2017-01-01 10:00:00'
+        c1.set_chega_cliente()
+
+        self.assertEqual(c1.ds_status_carrega, Carregamento.NO_CLIENTE)
+        self.assertEqual(c1.ds_status_cheg_cliente, 'No Horário')        
+
+    def test_agenda_horario_cif(self):
+        """
+        Alteração de agenda deve comparar a dt_hr_cheg_cliente com a dt_hr_agenda
+        quando dt_hr_cheg_cliente <= dt_hr_agenda o campo ds_status_cheg_cliente
+        deve ser "No horário"
+        """
+        c1 = Carregamento.objects.get(nr_nota_fis='22')
+        c1.dt_hr_agenda ='2017-01-01 00:00:00'
+        c1.dt_hr_cheg_cliente ='2017-01-01 00:00:00'
+        c1.set_chega_cliente()
+
+        self.assertEqual(c1.ds_status_carrega, Carregamento.NO_CLIENTE)
+        self.assertEqual(c1.ds_status_cheg_cliente, 'No Horário')
+
+    def test_agenda_atraso_cif(self):
+        """
+        Alteração de agenda deve comparar a dt_hr_cheg_cliente com a dt_hr_agenda
+        quando dt_hr_cheg_cliente > dt_hr_agenda o campo ds_status_cheg_cliente
+        deve ser "Em atraso".
+        """
+        c1 = Carregamento.objects.get(nr_nota_fis='22')
+        c1.dt_hr_agenda ='2017-01-01 00:00:00'
+        c1.dt_hr_cheg_cliente ='2017-01-01 00:00:01'
+        c1.set_chega_cliente()
+
+        self.assertEqual(c1.ds_status_carrega, Carregamento.NO_CLIENTE)
+        self.assertEqual(c1.ds_status_cheg_cliente, 'Atrasado')
 
 
     def test_alteracao_status(self):
         """ Alteração de Status do carregamento deve alterar o campo de status corretamente"""
         c1 = Carregamento.objects.get(nr_nota_fis='22')
-        self.assertEqual(c1.ds_status_carrega, Carregamento.PROGRAMADO)
+        self.assertEqual(c1.ds_status_carrega, Carregamento.SEM_PROGRAMACAO)
 
         c1.set_chegada(date='2017-01-01 11:00:00', grade ='1:00:00', placa='1111', lacre='1111', )
         self.assertEqual(c1.ds_status_carrega, Carregamento.NA_PLANTA)
 
-        c1.set_inicio(date='2017-01-01 11:00:00', placa='1111', lacre='1111', )
+        c1.set_inicio(date='2017-01-01 11:00:00', placa='1111', lacre='1111', is_pre_carregamento=False )
         self.assertEqual(c1.ds_status_carrega, Carregamento.INICIO)
 
         c1.set_fim(date='2017-01-01 11:00:00', placa='1111', lacre='1111', )
@@ -97,10 +155,10 @@ class CarregamentoStatusTestCase(TestCase):
         c1.set_chegada(date='2017-02-01 0:00:00', grade ='1:00:00', placa='1111', lacre='1111', )
         self.assertEqual(c1.dt_hr_chegada, '2017-02-01 0:00:00')
 
-        c1.set_inicio(date='2017-01-01 11:00:00', placa='1111', lacre='1111', )
+        c1.set_inicio(date='2017-01-01 11:00:00', placa='1111', lacre='1111', is_pre_carregamento=False )
         self.assertEqual(c1.dt_hr_ini_carga, '2017-01-01 11:00:00')
 
-        c1.set_inicio(date='2017-03-01 1:00:00', placa='1111', lacre='1111', )
+        c1.set_inicio(date='2017-03-01 1:00:00', placa='1111', lacre='1111', is_pre_carregamento=False )
         self.assertEqual(c1.dt_hr_ini_carga, '2017-03-01 1:00:00')
 
         c1.set_fim(date='2017-01-01 11:00:00', placa='1111', lacre='1111', )
