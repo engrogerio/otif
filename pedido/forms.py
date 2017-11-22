@@ -2,6 +2,8 @@
 
 from django import forms
 from falta.models import Motivo, MotivoDeAlteracaoDaAgenda, MotivoAtraso
+from django.contrib.admin import widgets
+
 
 class UpdateDateForm(forms.Form):
 
@@ -29,7 +31,7 @@ class AddMotivoAtrasoCarregamentoForm(forms.Form):
 
 class AddAgendamentoForm(forms.Form):
     
-    data = forms.DateTimeField(label='Data de agendamento', required=False)
+    data = forms.DateTimeField(label='Data de agendamento', widget=widgets.AdminSplitDateTime)
     motivo =forms.ModelChoiceField(label='Motivo da alteração', 
         queryset=MotivoDeAlteracaoDaAgenda.objects.all() , required=False)
     protocolo = forms.CharField(label='Protocolo', max_length=100, required=False)

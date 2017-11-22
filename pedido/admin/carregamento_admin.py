@@ -88,11 +88,11 @@ class PedidoCarregamentoAdminForm(forms.ModelForm):
          automaticamente, seta status = NO_CLIENTE
         Se existe uma data de descarregamento , automaticamente, seta status = DESCARREGADO
         """ 
-        if self.instance.dt_hr_cheg_cliente:
+        if self.instance.dt_hr_cheg_cliente is not None:
             if self.instance.dt_hr_descarrega:
                 self.instance.set_descarregado()
             else:
-                self.instance.set_cheg_cliente()
+                self.instance.set_chega_cliente()
 
     def save(self,commit=True):
 
@@ -170,7 +170,7 @@ class ItemInline_ReadOnly(ItemInline):
 class PedidoCarregamentoAdmin(SgoModelAdmin):
 
     form = PedidoCarregamentoAdminForm
-    template_name = 'pedido/add_agenda.html'
+    
 
     def get_actions(self, request):
         
@@ -204,7 +204,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
     def set_agenda(self, request, queryset):
         """ Para cada carregamento selecionado, seta o agendamento da entrega.
         """
-
+        template_name = 'pedido/add_agenda.html'
         form = None
         action_name = 'set_agenda'
 
@@ -240,7 +240,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             'action_name': action_name,
         }
 
-        return render(request, self.template_name, context)
+        return render(request, template_name, context)
     set_agenda.short_description = 'Agendar data de entrega'
 
     def add_motivo_atraso(self, request, queryset):
@@ -290,6 +290,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
 
         form = None
         action_name = 'set_chegada'
+        template_name = 'pedido/add_date.html'
 
         if 'apply' in request.POST:
             form = UpdateGradeForm(request.POST)
@@ -322,12 +323,13 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             'action_name': action_name
         }
 
-        return render(request, self.template_name, context)
+        return render(request, template_name, context)
     set_chegada.short_description = 'Sinalizar chegada do caminhão'
 
     def set_inicio(self, request, queryset):
         form = None
         action_name = 'set_inicio'
+        template_name = 'pedido/add_date.html'
         if 'apply' in request.POST:
             form = UpdateDateForm(request.POST)
             if form.is_valid():
@@ -364,12 +366,13 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             'action_name': action_name,
         }
 
-        return render(request, self.template_name, context)
+        return render(request, template_name, context)
     set_inicio.short_description = 'Sinalizar início do carregamento'
 
     def set_fim(self, request, queryset):
         form = None
         action_name = 'set_fim'
+        template_name = 'pedido/add_date.html'
         if 'apply' in request.POST:
             form = UpdateDateForm(request.POST)
             if form.is_valid():
@@ -399,12 +402,13 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             'action_name': action_name,
         }
 
-        return render(request, self.template_name, context)
+        return render(request, template_name, context)
     set_fim.short_description = 'Sinalizar fim do carregamento'
 
     def set_libera(self, request, queryset):
         form = None
         action_name = 'set_libera'
+        template_name = 'pedido/add_date.html'
         if 'apply' in request.POST:
             form = UpdateDateForm(request.POST)
             if form.is_valid():
@@ -434,7 +438,7 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
             'action_name': action_name,
         }
 
-        return render(request, self.template_name, context)
+        return render(request, template_name, context)
     set_libera.short_description = 'Sinalizar liberação do caminhão'
 
     def get_classe_cli(self,obj):
@@ -452,7 +456,8 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                        'ds_transp', 'cd_rota', 'nr_nota_fis', 'nr_pedido', 'ds_ord_compra',
                        'dt_hr_chegada', 'dt_hr_ini_carga', 'dt_hr_fim_carga', 'dt_hr_liberacao',
                        'dt_hr_cheg_cliente', 'dt_hr_descarrega', 
-                       'dt_hr_agenda', 'ds_status_cheg_cliente', 'tipo_frete')
+                       'dt_hr_agenda', 'ds_status_cheg_cliente', 
+                       'tipo_frete')
 
     fieldsets = (
         (None, {'fields':(
@@ -461,17 +466,19 @@ class PedidoCarregamentoAdmin(SgoModelAdmin):
                         ('ds_transp', 'ds_placa', 'nr_lacre'),
                         ('ds_status_carrega', 'ds_status_cheg', 'ds_status_lib', 'motivo_atraso', 'ds_obs_atraso'),
                         ('ds_obs_carga', 'qt_pallet', 'pallets', 'cd_rota'),
-                        ('tipo_frete',  'ds_status_cheg_cliente', 'motivo_altera_agenda', 'protocolo_agenda', 'ds_obs_agenda',),
+                        ('tipo_frete', 'dt_hr_agenda', 'ds_status_cheg_cliente', 'motivo_altera_agenda', 'protocolo_agenda',
+                         'ds_obs_agenda',),
                         )
                 }),
         ('Acompanhamento do Carregamento',{
             'classes':('collapse',),
                 'fields':(('dt_hr_chegada','dt_hr_ini_carga','dt_hr_fim_carga', 'dt_hr_liberacao', 
-                'dt_hr_agenda', 'dt_hr_cheg_cliente', 'dt_hr_descarrega'))
+                'dt_hr_agenda', 'dt_hr_cheg_cliente', 
+                'dt_hr_descarrega'))
         })
     )
-    list_filter = (('dt_saida', DateRangeFilter), 'business_unit', 'ds_status_carrega', 'cd_rota','cliente__ds_classe_cli',
-                   'ds_transp', 'motivo_atraso')
+    list_filter = (('dt_saida', DateRangeFilter), 'business_unit', 'ds_status_carrega', 'cd_rota',
+    'cliente__ds_classe_cli', 'ds_transp', 'motivo_atraso')
 
     search_fields = ['nr_nota_fis','cliente__nm_ab_cli' ,]
     formfield_overrides = {
