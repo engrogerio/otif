@@ -35,7 +35,7 @@ class AddAgendamentoForm(forms.Form):
     motivo =forms.ModelChoiceField(label='Motivo da alteração', 
         queryset=MotivoDeAlteracaoDaAgenda.objects.all() , required=False)
     protocolo = forms.CharField(label='Protocolo', max_length=100, required=False)
-    obs = forms.CharField(label='Obs.', max_length=200, required=False)
+    obs = forms.CharField(label='Obs.', max_length=500, required=False, widget=forms.Textarea)
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
    
     def __init__(self, *args, **kwargs):
